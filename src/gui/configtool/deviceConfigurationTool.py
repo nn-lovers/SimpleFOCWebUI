@@ -12,30 +12,28 @@ from src.gui.configtool.graphicWidget import SimpleFOCGraphicWidget
 from src.gui.configtool.pidConfiguration import PidGroupBox
 from src.gui.configtool.torqueConfig import TorqueGroupBox
 from src.gui.sharedcomnponets.commandLineInterface import CommandLineWidget
-from src.gui.sharedcomnponets.sharedcomponets import (WorkAreaTabWidget,
-                                                      GUIToolKit)
+from src.gui.sharedcomnponets.sharedcomponets import WorkAreaTabWidget, GUIToolKit
 from src.simpleFOCConnector import SimpleFOCDevice
 
 
 class DeviceConfigurationTool(WorkAreaTabWidget):
-
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.device = SimpleFOCDevice.getInstance()
 
-        self.setObjectName('DeviceConfigurationTool')
+        self.setObjectName("DeviceConfigurationTool")
 
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
-        self.verticalLayout.setObjectName('verticalLayout')
+        self.verticalLayout.setObjectName("verticalLayout")
 
         self.counterWidget = QtWidgets.QWidget(self)
-        self.counterWidget.setObjectName('counterWidget')
+        self.counterWidget.setObjectName("counterWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.counterWidget)
-        self.horizontalLayout.setObjectName('horizontalLayout')
+        self.horizontalLayout.setObjectName("horizontalLayout")
         self.digitalReadOut = DROGroupBox(self.counterWidget)
         self.horizontalLayout.addWidget(self.digitalReadOut)
-        
+
         self.controlLoop = ControlLoopGroupBox(self.counterWidget)
         self.horizontalLayout.addWidget(self.controlLoop)
 
@@ -50,10 +48,10 @@ class DeviceConfigurationTool(WorkAreaTabWidget):
         self.verticalLayout.addWidget(self.graphicWidget)
 
         self.bottomWidget = QtWidgets.QWidget(self)
-        self.bottomWidget.setObjectName('bottomWidget')
+        self.bottomWidget.setObjectName("bottomWidget")
 
         self.bottomHorizontalLayout = QtWidgets.QHBoxLayout(self.bottomWidget)
-        self.bottomHorizontalLayout.setObjectName('configureHorizontalLayout')
+        self.bottomHorizontalLayout.setObjectName("configureHorizontalLayout")
 
         self.pidConfigurator = PidGroupBox(self.bottomWidget)
         self.bottomHorizontalLayout.addWidget(self.pidConfigurator)
@@ -78,17 +76,19 @@ class DeviceConfigurationTool(WorkAreaTabWidget):
         self.bottomHorizontalLayout.addWidget(self.lasWidget)
         self.verticalLayout.addWidget(self.bottomWidget)
 
-        self.device.commProvider.commandDataReceived.connect(self.commandLine.publishCommandResponseData)
+        self.device.commProvider.commandDataReceived.connect(
+            self.commandLine.publishCommandResponseData
+        )
 
     def getTabIcon(self):
-        return GUIToolKit.getIconByName('motor')
+        return GUIToolKit.getIconByName("motor")
 
     def getTabName(self):
         return self.device.connectionID
 
     def configureConnection(self, configvalues):
-        self.device.serialPortName = configvalues['serialPortName']
-        self.device.serialRate = configvalues['serialRate']
-        self.device.stopBits = configvalues['stopBits']
-        self.device.serialByteSize = configvalues['serialByteSize']
-        self.device.serialParity = configvalues['serialParity']
+        self.device.serialPortName = configvalues["serialPortName"]
+        self.device.serialRate = configvalues["serialRate"]
+        self.device.stopBits = configvalues["stopBits"]
+        self.device.serialByteSize = configvalues["serialByteSize"]
+        self.device.serialParity = configvalues["serialParity"]

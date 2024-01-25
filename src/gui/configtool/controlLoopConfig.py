@@ -11,16 +11,17 @@ class ControlLoopGroupBox(QtWidgets.QGroupBox):
 
         self.device = SimpleFOCDevice.getInstance()
 
-        self.setObjectName('controlLoop')
-        self.setTitle('Control Loop Mode')
+        self.setObjectName("controlLoop")
+        self.setTitle("Control Loop Mode")
 
         self.controlLoopHorizontalLayout = QtWidgets.QHBoxLayout(self)
-        self.controlLoopHorizontalLayout.setObjectName('controlLoopHorizontalLayout')
+        self.controlLoopHorizontalLayout.setObjectName("controlLoopHorizontalLayout")
 
-        
         self.selectorControlLoop = QtWidgets.QComboBox(self)
-        self.selectorControlLoop.setObjectName('selectorControlLoop')
-        self.selectorControlLoop.addItems(['Torque', 'Velocity', 'Angle', 'Velocity openloop', 'Angle openloop'])
+        self.selectorControlLoop.setObjectName("selectorControlLoop")
+        self.selectorControlLoop.addItems(
+            ["Torque", "Velocity", "Angle", "Velocity openloop", "Angle openloop"]
+        )
         self.selectorControlLoop.currentIndexChanged.connect(self.changeControlLoop)
         self.controlLoopHorizontalLayout.addWidget(self.selectorControlLoop)
 
@@ -29,7 +30,8 @@ class ControlLoopGroupBox(QtWidgets.QGroupBox):
         self.disableUI()
         self.device.addConnectionStateListener(self)
         self.device.commProvider.commandDataReceived.connect(
-            self.commandResponseReceived)
+            self.commandResponseReceived
+        )
 
         self.connectionStateChanged(self.device.isConnected)
 

@@ -1,0 +1,382 @@
+/*Topbar Dropdown*/
+#topbar_dropdown{
+    width:172px;
+    height:104px;
+    position:absolute;
+    display:flex;
+    flex-direction: column;
+    left:20px;
+    top:10px;
+    padding-top:45px;
+    z-index: 1;
+    background-color: #f8f9fa;
+    box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+    border-radius: 10px;
+}
+#topbar_dropdown button{
+    margin-top:0px;
+    border-radius: 0px !important;
+}
+
+/*Chart controls*/
+.monitor_input{
+    margin-left:2px;
+    margin-top:5px;
+    margin-bottom:10px;
+}
+.monitor_checkbox{
+    cursor:pointer;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    position:relative;
+    display: flex;
+    flex-direction: row;
+    max-width:60px !important;
+    width:60px !important;
+    margin-right:5px;
+    font-size:10px;
+    font-weight: bolder;
+    box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+    padding-right:0px !important;
+    padding-left:10px !important;
+    color:rgb(53, 53, 53);
+    margin:2px;
+}
+.monitor_checkbox .b-contain{
+    position:absolute;
+    top:1px;
+    right:46px;
+}
+
+/*Chart and controls*/
+#send_live_data_toggle{
+    margin-left:2px;
+    margin-bottom:10px;
+}
+#enable_motor_toggle{
+    display:flex;
+    justify-content: left;
+    align-items: center;
+    padding-left:11px;    
+}
+#chart_and_chart_controls{
+    margin-top:5px;
+    display:flex;
+    flex-direction: row;
+    max-width: 200px;
+    min-width: 200px;
+}
+#chart_control_tickboxes{    
+    max-width: 160px;
+    min-width: 160px;
+    display:flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: left;
+}
+#chart_control_tickboxes div{
+    padding: 5px;
+}
+#chart_controls{
+    width:200px;
+}
+
+/*topbar middle*/
+#topbar_middle{
+    display: flex;
+}
+/*Coms element*/
+.coms_element{
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+.com_connected{
+    color:rgb(41, 151, 41);
+}
+.hidden{
+    display:none !important;
+}
+#device_connect{
+    position:absolute;
+    width:100px;
+    height:100px;
+    display:flex;
+    flex-direction: column;    
+    top:30px;    
+    right:10px;
+    padding:10px;
+    border-radius: 15px;
+    background:white;
+    color: #343a40 !important;    
+    z-index: 10000;
+}
+.enable_motor_toggle{
+    margin-left:-12px;
+    width:200px !important;
+    height:50px !important;
+    margin-top:5px;
+}
+.enable_motor_toggle svg{
+    top:11px;
+    left:25px;
+}
+
+/*Comms Configure*/
+#comms_configure{
+    display:flex;
+    flex-direction: column;
+    position:absolute;
+    top:30px;
+    right:130px;
+    padding:10px;
+    border-radius: 15px;
+    background:white;
+    color: #343a40 !important;
+    z-index: 10000;
+}
+#comms_configure input, select{
+    width:120px;
+}
+/*topbar right*/
+#topbar_right{
+    display:flex;
+    justify-content: right;
+    position:relative;
+    width:400px;
+}
+/*topbar*/
+.topbar{
+    width:100%;
+    background:white;
+}
+/*controls panel*/
+#controls_panel_left{
+    display:flex;
+    flex-direction: column;
+}
+#control_mode_select{
+    display:flex;
+    flex-direction: row;
+    z-index: 100;
+}
+
+/*control mode select button*/
+.control_mode_select_button{
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+    background-color: transparent; border-radius: 6px;
+    border: 1px solid rgb(220, 220, 220);
+    display: inline-block; cursor: pointer;
+    color: rgb(56, 56, 56);
+    font-family: Arial;
+    width:145px;
+    height:45px;
+    font-size: 10px;
+    font-weight: bold;
+    text-decoration: none;
+}
+.control_mode_select_button_active{
+    background:rgb(76, 216, 107);
+    color:white;
+}
+/*tabs*/
+.tab{
+    width:80px;
+    height:20px;
+    border:#868e96 solid 1px;    
+    background:white;    
+    padding:5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor:pointer;
+}
+.tab-long{
+    width:130px;
+}
+.tab1{
+    border-radius: 5px 5px 0px 0px;
+    clip-path: polygon(0 0, 100% 0, 100% 98%, 0 98%);
+    z-index: 10;
+}
+.tab2{
+    clip-path: polygon(0 0, 100% 0, 100% 98%, 0 98%);
+    border-radius: 0px 5px 0px 0px;
+    margin-left:-10px;
+    z-index: 9;
+}
+.tab3{
+    clip-path: polygon(0 0, 100% 0, 100% 98%, 0 98%);
+    border-radius: 0px 5px 0px 0px;
+    margin-left:-10px;
+    z-index: 8;
+}
+.tab_active{
+    z-index: 11;
+    clip-path: none;
+    font-weight: bolder;
+    border-radius: 5px 5px 0px 0px;
+}
+.tab:hover{
+    font-weight: bolder;
+}
+
+.tab_container{
+    margin-top: 10px;
+    width:100%;
+    height:30px;
+    display:flex;
+    flex-direction: row;
+    align-items: left;
+    padding:5px;
+}
+/*Log Controls*/
+.log_controls_container{
+    margin-top: 10px;
+    width:100%;
+    height:30px;
+    display:flex;
+    flex-direction: row;
+    align-items: left;
+    padding:5px;
+}
+.log_control_item{
+    height:15px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background:white;
+    border-radius: 8px;
+    padding:3px;
+    padding-right:20px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    position:relative;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.log_control_item .c-contain{
+    position:absolute;
+    right:-10px;
+    top:5px;
+}
+/*main section container*/
+.section_container{
+    z-index: 0;
+    margin-top: -5px;
+    padding:5px;
+    width:90%;
+    height:250px;
+    border:#868e96 solid 1px;    
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    background:white;
+    border-radius: 0px 10px 10px 10px;
+    padding:10px;
+    margin-left:5px;
+}
+/*Logs*/
+.log_container{
+    z-index: 0;
+    margin-top: -10px;
+    width:100%;
+    padding:5px;
+    cursor:text;
+}
+.log_container label{
+    cursor:text;
+}
+.log_messages{  
+    overflow: scroll;      
+    cursor:text;
+    width:90%;
+    height:251px;
+    border:#868e96 solid 1px;    
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    background:white;
+    border-radius: 0px 10px 10px 10px;
+    padding:10px;
+}
+.log_messages label{
+    display:block;
+}
+.log_box{    
+    width:90%;
+    height:300px;
+    overflow: scroll;    
+    display:flex;
+    flex-direction: column;
+    flex-wrap: nowrap;    
+}
+
+.logging_INFO{
+    color:black;    
+}
+.logging_WARNING{
+    color:rgb(214, 141, 73);
+}
+.logging_ERROR{
+    color:rgb(189, 69, 69);
+}
+.logging_DEBUG{
+    color:rgb(68, 106, 175);
+}
+
+/*bottom section*/
+
+.bottom_section{
+    display: flex;
+    flex-direction: row;
+    margin-top:5px;
+     width:100%;
+     height:400px;     
+}
+.bottom_section_left{
+    width:60%;
+    height:400px;
+}
+.bottom_section_right{
+    width:40%;
+    height:400px;
+    margin-top:-1px;
+}
+
+
+/*Controls Panel*/
+#controls_panel{
+    display: flex;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#torque_mode_select_container{
+    z-index: 1001;
+}
+#control_horizontal_sliders{
+    margin-top:40px;
+}
+
+/*Parameters Panel*/
+#parameters_panel{
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#general_device_settings input{
+    width:100px;
+}

@@ -1,0 +1,29 @@
+<link rel="stylesheet" href="{{ url_for('static',filename='main.css')}}">
+<body>
+
+<h1>SimpleFOC UI</h1>
+
+<div id="coms">
+    <!--Here show the coms-->
+
+</div>
+
+
+<div id="controls">
+<button onclick="test();">Add State</button>
+
+
+</div>
+</body>
+
+<script src="{{ url_for('static', filename='socketio.js')}}"></script>
+<script type="text/javascript" charset="utf-8">
+    var socket = io();
+    socket.on('connect', function() {
+        socket.emit('my event', {data: 'I\'m connected!'});
+    });
+    function test(){
+        socket.emit("test","ashdiah");
+    }
+</script>
+<script src="{{ url_for('static', filename='main.js')}}"></script>

@@ -1,0 +1,384 @@
+<link rel="stylesheet" href="{{ url_for('static',filename='/general.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/devices/devices.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/components/slider.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/components/checkbox.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/components/loader.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/dist/uplot.css')}}">
+
+<body>
+
+  
+<!--Top Bar Begins-->
+<div class="topbar">
+  <!--Left Side Components-->
+  <span id="main_logo" class="simple" onclick="toggle_topbar_menu();">
+   <img class="simplefoc_logo" src="{{ url_for('static',filename='/media/logo.jpg')}}">
+    Simple<span class="foc">FOC</span> WebUI
+  </span>
+
+  <!--Middle Components-->
+  <div id="topbar_dropdown" class="hidden">
+    <button class="button1">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+      Load Configuration</button>
+    <button class="button1">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Push Configuration</button>
+    <button class="button1" onclick="pull_configuration()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Pull Configuration</button>
+    <button class="button1" style="border-radius: 0 0 10px 10px !important;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-code"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+      Generate Code</button>
+  </div>
+
+    <!--Right Side Components-->
+    <div id="topbar_right">
+      <button class="button2" onclick="toggle_comms_settings();" style="position:relative">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Settings              
+      </button>
+      <div id="comms_configure" class="hidden">
+        Serial Rate <input id="serialRateInput" type="number" value="115200">
+        Serial Byte Size <select id="byteSizeSelect" name="byteSize">
+            <option value="8">8</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+          </select>
+        Serial Parity  <select id="paritySelect" name="parity">
+            <option value="None">None</option>
+            <option value="Even">Even</option>
+            <option value="Odd">Odd</option>
+            <option value="Mark">Mark</option>
+            <option value="Space">Space</option>
+          </select>
+        
+        Stop Bits  <select id="stopBitsSelect" name="stopBits">
+            <option value="1">1</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2</option>
+          </select>
+      </div>
+    
+    <button class="button2"  onclick="toggle_device_connect_settings();"  style="position:relative">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-stop-circle"><circle cx="12" cy="12" r="10"></circle><rect x="9" y="9" width="6" height="6"></rect></svg>
+      Connect
+  </button>
+  <div id="device_connect" class="hidden">
+        <button onclick="refresh_coms();">Refresh COMS</button>
+        <!--Comms configure-->          
+        Devices:
+        <div id="coms">
+            <!--Here show the coms-->    
+        </div>  
+      </div>
+   
+    <!--Right Side End-->
+    </div>
+
+</div>
+
+<div id="chart_and_chart_controls">
+  <div id="chart_controls">  
+    <h1>Monitor Data</h1>
+<div id="chart_control_tickboxes">  
+  <div class="monitor_checkbox" style="background:#495057; color:white;"> 
+    Target
+      <label class="b-contain">
+        <input id="target_monitor_checkbox" type="checkbox">
+        <div class="b-input"></div>
+      </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#ffe066">
+    Volt_Q 
+    <label class="b-contain">
+      <input id="volt_q_monitor_checkbox" type="checkbox">
+      <div class="b-input"></div>
+    </label>    
+  </div>
+  <div class="monitor_checkbox" style="background:#b197fc">
+    Volt_D 
+    <label class="b-contain">
+      <input id="volt_d_monitor_checkbox" type="checkbox">
+      <div class="b-input"></div>
+    </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#91a7ff">
+    Curr_Q 
+    <label class="b-contain">
+      <input id="curr_q_monitor_checkbox" type="checkbox">
+      <div class="b-input"></div>
+    </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#74c0fc">
+    Curr_D 
+    <label class="b-contain">
+      <input id="curr_d_monitor_checkbox" type="checkbox">
+      <div class="b-input"></div>
+    </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#63e6be">
+    Velocity 
+    <label class="b-contain">
+      <input id="velocity_monitor_checkbox" type="checkbox">
+      <div class="b-input"></div>
+    </label>    
+  </div>
+  <div class="monitor_checkbox" style="background:#ffa94d">
+    Angle
+    <label class="b-contain">
+      <input id="angle_monitor_checkbox" type="checkbox">
+      <div class="b-input"></div>
+    </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#ff6b6b; opacity: 0.6;">
+    Temp
+    <label class="b-contain">
+      <input id="angle_monitor_checkbox" type="checkbox" disabled>
+      <div class="b-input"></div>
+    </label>
+  </div>  
+</div>
+
+<div class="monitor_input">
+  <span>Downsample</span>
+  <input id="monitor_downsample" value="100" type="number">
+</div> 
+
+<!--Send Live Data Toggle-->
+<div id="send_live_data_toggle">
+<button  class="button1 button_streaming" onclick="request_toggle_live_data();">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+  Start Live Data</button>
+</div>
+
+</div>
+  <!--Main Content Begins-->
+  <div id="chart">
+
+  </div>
+
+  
+</div>
+
+<div class="bottom_section">
+  <!---Bottom Section Left-->
+  <div class="bottom_section_left">
+    <div class="tab_container">
+      <label id="tab1" onclick="switch_tab('controls_panel')" class="tab tab_active tab-long tab1">Motor Controls</label>
+      <label id="tab2" onclick="switch_tab('parameters_panel')" class="tab tab-long tab2">Parameters Tuning</label>
+      <label id="tab3" onclick="switch_tab('terminal_panel')" class="tab tab-long tab3">Serial Terminal</label>
+      </div>
+
+      <div class="section_container">
+        <!--Controls Panel-->
+        <div id="controls_panel">
+          <div id="controls_panel_left">
+          <div id="control_type">
+            <div id="control_mode_select">
+                <div id="control_loop_mode_select_container">
+                Control Loop Mode
+                <select id="control_loop_mode_select" name="control_loop_mode">
+                  <option value="0">Torque</option>
+                  <option value="1">Velocity</option>
+                  <option value="2">Angle</option>
+                  <option value="3">Velocity Open Loop</option>
+                  <option value="4">Angle Open Loop</option>
+                </select>
+                <!--<button id="control_mode_select_0" class="control_mode_select_button" onclick="set_control_mode(0)">Torque</button>
+                <button id="control_mode_select_1" class="control_mode_select_button" onclick="set_control_mode(1)">Velocity</button>
+                <button id="control_mode_select_2" class="control_mode_select_button" onclick="set_control_mode(2)">Angle</button>
+                <button id="control_mode_select_3" class="control_mode_select_button" onclick="set_control_mode(3)">Velocity Open Loop</button>
+                <button id="control_mode_select_4" class="control_mode_select_button" onclick="set_control_mode(4)">Angle Open Loop</button>-->
+                </div>
+                <div id="torque_mode_select_container" >
+                Torque Mode
+                <select id="control_loop_mode_select" name="control_loop_mode">
+                  <option value="0">Torque Mode 1</option>
+                  <option value="1">Torque Mode 2</option>
+                  <option value="2">Torque Mode 3</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div id="control_commands">
+
+            <button class="button3" onclick="">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-radio"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
+              Zero Sensor</button>
+            <button style="z-index: 1001" class="button3" onclick="zero_target()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+              Zero Target</button>            
+              <!--Enable/Disable Motor-->
+            <div  style="z-index: 1001" id="enable_motor_toggle">
+              <div class="lds-dual-ring"></div>  
+            </div>
+          </div>
+          <div id="control_horizontal_sliders">
+            <div>
+              Target Min:
+            <input type="number">
+          </div>
+          <div>
+            Target Max:
+            <input type="number">
+          </div>
+            <input id="horizontal_slider" type="range" value="0" min="-30" max="30" >
+          </div>
+          </div>
+          
+          <div class="control_sliders">            
+            <div class="slider-container">              
+              <div id="slider-indicator-dotted-line">
+              </div>
+   
+              <div class="slider-wrapper">
+                <div id="angle_slider" class="slider">
+                  <div id="handle" class="handle"></div>
+                  <div id="slider_cover" class="slider_cover"></div>                  
+                </div>
+              </div>
+              <div class="slider-wrapper2">
+                <div id="angle_slider2" class="slider2">
+                  <div id="handle2" class="handle2"></div>
+                  <div id="slider_cover2" class="slider_cover2"></div>    
+                </div>
+              </div>
+              <span class="slider-target-value"> 
+                <label id="slider-target-id">Target</label>
+                <label id="target-value">0</labelid>
+                </span>
+              <span class="slider-actual-value">
+                <label id="slider-actual-id">Actual</label>
+                <label id="actual-value">0</labelid>
+              </span>
+              <span class="slider-error-value">
+                <label id="slider-error-id">Error</label>
+                <label id="error-value">0</labelid>
+              </span>
+            </div>            
+          </div>
+      </div>
+      <!--Controls Panel End-->
+
+      <!--Parameters Panel-->
+      <div id="parameters_panel" class="hidden">
+
+        <h3>General Device Settings</h3>
+        <div id="general_device_settings">
+          <div class="row">
+        <div class="column">Motion Downsample<input type="number" value="0.0"></div>
+        <div class="column">Current Limit <input type="number" value="0.2"></div>
+        <div class="column">Velocity Limit <input type="number" value="110.0"></div>
+        <div class="column">Voltage Limit <input type="number" value="12.1"></div>
+      </div>
+      </div>
+
+      <h3>PID Controller configuration</h3>
+        <div id="pid_controller_settings">
+          Select PID:
+          <select id="pid_settings_select" name="pid_settings">
+            <option value="position">Position</option>
+            <option value="velocity">Velocity</option>
+            <option value="current_d">Current_d</option>
+            <option value="current_q">Current_Q</option>
+          </select>
+          <br>
+          <div class="row">
+            <div class="column">Proportional gain<input type="number" value="0.0"></div>
+            <div class="column">Integral gain<input type="number" value="0.0"></div>
+            <div class="column">Derivative gain <input type="number" value="0.0"></div>            
+          </div>
+          <div class="row">
+            <div class="column">Output ramp<input type="number" value="0.0"></div>
+            <div class="column">Low pass filter<input type="number" value="0.0"></div>
+          </div>
+
+      </div>
+
+      </div>
+      <!--Parameters Panel End-->
+
+      <!--Terminal Panel-->
+      <div id="terminal_panel" class="hidden">
+      </div>
+      <!--Terminal Panel End-->
+      
+      </div>
+  </div>
+  <!---Bottom Section End-->
+
+
+  <!---Bottom Section Right-->
+  <div class="bottom_section_right">
+    <!--Logs-->
+    <div class="log_controls_container">
+    <label class="log_control_item">General
+      <label class="c-contain">
+        <input id="log_control_general_checkbox" type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item">Serial
+      <label class="c-contain">
+        <input id="log_control_serial_checkbox" type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item">
+      Info
+      <label class="c-contain">
+        <input id="log_control_info_checkbox" type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item">
+      Warning
+      <label class="c-contain">
+        <input id="log_control_warning_checkbox" type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item">Error
+      <label class="c-contain">
+        <input id="log_control_error_checkbox" type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item">Debug
+      <label class="c-contain">
+        <input id="log_control_debug_checkbox" type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    </div>
+
+    <div class="log_container">
+      <!---->
+      <div id="logs_container" class="log_box">
+      
+      <div id="logs_message_box" class="log_messages">
+      
+      </div>
+      </div>
+      
+
+  </div>
+  <!---Bottom Section End-->
+
+</div>
+</div>
+
+
+
+</body>
+
+<script src="{{ url_for('static', filename='general.js')}}"></script>
+<script src="{{ url_for('static', filename='dist/socketio.js')}}"></script>
+<script src="{{ url_for('static', filename='dist/uplot.js')}}"></script>
+<script src="{{ url_for('static', filename='components/makechart.js')}}"></script>
+<script src="{{ url_for('static', filename='components/slider.js')}}"></script>
+<script src="{{ url_for('static', filename='devices/devices.js')}}"></script>
+

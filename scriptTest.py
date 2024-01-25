@@ -1,12 +1,14 @@
 from src.simpleFOCConnector import SimpleFOCDevice
 import time
-if __name__ == '__main__':
-    deviceConnector = SimpleFOCDevice.getInstance()
-    deviceConnector.serialPortName = 'COM32'
+
+if __name__ == "__main__":
+    deviceConnector = SimpleFOCDevice()
+    deviceConnector.serialPortName = "COM3"
     deviceConnector.serialRate = 115200
-    deviceConnector.devCommandID = 'M'
+    deviceConnector.devCommandID = "M"
 
     if deviceConnector.connect(SimpleFOCDevice.ONLY_CONNECT):
+        print("connected")
         while True:
             deviceConnector.sendControlType(SimpleFOCDevice.ANGLE_CONTROL)
             deviceConnector.sendTargetValue(0)
