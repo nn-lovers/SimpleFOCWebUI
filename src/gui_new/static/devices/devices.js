@@ -4,16 +4,30 @@ let comms_settings_open = false;
 let device_connect_settings_open = false;
 let all_coms = [];
 let all_tabs = ["controls_panel","parameters_panel","terminal_panel"];
+let log_severity_controls = {
+    "info":true,
+    "warning":false,
+    "error":false,
+    "debug":false
+}
+let log_controls = {
+    "page_logs":true,
+    "console_logs":false,
+}
+let monitoring_variable_names = ["target","volt_q","volt_d","curr_q","curr_d","velocity","angle"];
 
 /*Elements*/
 const horizontal_slider = document.getElementById("horizontal_slider");
-let slider_min = -30;
-let slider_max = 30;
+let slider_min = -1;
+let slider_max = 1;
  // Update slider value based on angle
- function update_target_display_value(target_value){
-    document.getElementById("target-value").innerHTML = target_value;
+ function update_target_display_value(target_value){    
     updateHorizontalSliderValue(target_value);
     updateSliderAngle(remap_slider_val_to_angle_range(target_value));
+}
+function update_actual_target_value(target_value){
+    document.getElementById("target-value").innerHTML = target_value;
+    document.getElementById("target_value_input").value = target_value;
 }
  function updateHorizontalSliderValue(val){
     document.getElementById("horizontal_slider").value = val;
@@ -36,6 +50,8 @@ let sending_live_data = false;
 let selected_device = null;
 let selected_monitoring_variables = Array(7).fill(false);
 
+/*
+TODO: Put device info in a class
 Device = (port_name)=>{
     self = {};
     self.port_name = port_name
@@ -43,70 +59,88 @@ Device = (port_name)=>{
     self.selected_monitoring_variables = Array(7).fill(false);
     self.sending_live_data = false;
     return self;
-};
+};*/
+
 let live_data_plot_initialized = false;
-let live_data = {
-    "timestamps":[],
-    "target":[],
-    "volt_q":[],
-    "volt_d":[],
-    "curr_q":[],
-    "curr_d":[],
-    "velocity":[],
-    "angle":[],
-};
-initialize_live_data_plot();
-function initialize_live_data_plot(){
+let live_data = initialize_live_data();
+function initialize_live_data(){
     let timestamps = [];
     let start_timestamp = new Date().getTime() / 1000;
     for(let i=0;i<max_plot_amount;i++){
         timestamps.push(i+start_timestamp);
     }
-    live_data = {
+    const live_data = {
         "timestamps":timestamps,
-        "target":Array(max_plot_amount).fill(0),
-        "volt_q":Array(max_plot_amount).fill(0),
-        "volt_d":Array(max_plot_amount).fill(0),
-        "curr_q":Array(max_plot_amount).fill(0),
-        "curr_d":Array(max_plot_amount).fill(0),
-        "velocity":Array(max_plot_amount).fill(0),
-        "angle":Array(max_plot_amount).fill(0),
     };
+    monitoring_variable_names.forEach((variable_name)=>{
+        live_data[variable_name] = Array(max_plot_amount).fill(0)
+    });    
+    return live_data;
 }
 function clear_live_data_plot(){
     live_data = {
-        "timestamps":[],
-        "target":[],
-        "volt_q":[],
-        "volt_d":[],
-        "curr_q":[],
-        "curr_d":[],
-        "velocity":[],
-        "angle":[],
+        "timestamps":[],       
     };
+    monitoring_variable_names.forEach((variable_name)=>{
+        live_data[variable_name] = [];
+    });
 }
-
-
+function change_maxplot_amount(amount){    
+    if(amount || amount == 0){
+        amount = Math.round(amount);
+        max_plot_amount = amount;
+        document.getElementById("max_plot_amount").value = amount;
+    }
+};
 document.getElementById("coms").innerHTML = "";
-socket.on("server_response_initialization",(initialization_data)=>{    
+function initialize_device_params(device_params){
+    for (let key in device_params) {
+        document.getElementById(key).value = device_params[key];
+    }
+}
+socket.on("server_response_device_params_sync",(device_params)=>{
+    initialize_device_params(device_params);
+});
+socket.on("server_response_initialization",(initialization_data)=>{
     connect_com(initialization_data["connected_port_name"]);
 
+    initialize_device_params(initialization_data["device_params"]);
+
+    set_device_connected_status(initialization_data["connected_port_name"]);
+    if(initialization_data["live_data_syncing"]){        
+        if(!live_data_plot_initialized){
+            clear_live_data_plot();
+        }
+        live_data_plot_initialized = true;
+        switch_send_live_data_ui(true);
+    }
+    switch_monitoring_variables_display(initialization_data["monitoring_ariables"]);    
     switch_motor_enable_ui(false);
-    switch_send_live_data_ui(false);
+    set_target_minmax_value(-1,1);
 });
 socket.on("server_response_device_refresh",(data)=>{
     //data is an array
     all_coms = data;
-    document.getElementById("coms").innerHTML = "";
+    if(data.length==0){
+        document.getElementById("coms").innerHTML = "No Devices Found...";
+    }else{
+        document.getElementById("coms").innerHTML = "";
+    }
     data.forEach(device => {
         let coms_display = `
         <div id="coms_element_${device}" class="coms_element ${device==selected_device ? 'com_connected' : ''}"">
         ${device}
-        <button class="${device==selected_device ? 'hidden' : ''}" id='button_connect_com_${device}' 
-            onclick="connect_com('${device}')">Connect</button>
+        <button class="button5 button_enable ${device==selected_device ? 'hidden' : ''}" id='button_connect_com_${device}' 
+            style='width:100px !important;'
+            onclick="connect_com('${device}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus-circle"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            Connect</button>
         <button id='button_disconnect_com_${device}' 
-        class="${device==selected_device ? '' : 'hidden'}"
-        onclick="disconnect_com('${device}')">Disconnect</button>
+        class="button5 button_disable ${device==selected_device ? '' : 'hidden'}"
+        style='width:100px !important;'
+        onclick="disconnect_com('${device}')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus-circle"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        Disconnect</button>
         </div>
         `
         document.getElementById("coms").innerHTML += coms_display;
@@ -115,26 +149,28 @@ socket.on("server_response_device_refresh",(data)=>{
 socket.on("server_response_device_status_change",(status)=>{
     switch_motor_enable_ui(status);
 });
-socket.on("server_response_device_connect",(port_name)=>{
-   setup_device_connection(port_name);   
+socket.on("server_response_device_connect",(data)=>{
+   setup_device_connection(data["port_name"]);   
+   initialize_device_params(data["device_params"]);
+   set_device_connected_status(true);
 });
 socket.on("server_response_device_disconnect",(data)=>{
     document.getElementById(`button_connect_com_${data}`).classList.remove("hidden");
+    document.getElementById(`button_disconnect_com_${data}`).innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus-circle"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+    Disconnect`;
     document.getElementById(`button_disconnect_com_${data}`).classList.add("hidden");
-    document.getElementById(`coms_element_${data}`).classList.remove("com_connected");        
+    document.getElementById(`coms_element_${data}`).classList.remove("com_connected");
+    set_device_connected_status(false);
 });
 socket.on("server_response_control_mode_change",(mode)=>{
-    [0,1,2,3,4].forEach((control_mode)=>{
-        document.getElementById(`control_mode_select_${control_mode}`).classList.remove("control_mode_select_button_active");
-    });
     selected_control_mode = mode;
-    document.getElementById(`control_mode_select_${selected_control_mode}`).classList.add("control_mode_select_button_active");
+    document.getElementById(`control_mode_select`).value = mode;
 });
 socket.on("server_response_target_change",(target_value)=>{    
-    update_target_display_value(target_value);
+    update_actual_target_value(target_value);
 });
 socket.on("server_response_monitoring_variables_changed",(monitoring_variables)=>{
-    selected_monitoring_variables = monitoring_variables;
+    switch_monitoring_variables_display(monitoring_variables);
 });
 socket.on("server_response_live_data_change",(sending_live_data_status)=>{        
     if(!live_data_plot_initialized){
@@ -171,13 +207,36 @@ function setup_device_connection(port_name){
         selected_device = port_name;
     }
 }
-function subscribe_to_logs(log_name,log_type){
-    let log_element = document.getElementById("logs_message_box");
-    //Max 3000 characters in console...
-    let max_chars = 3000;
+function toggle_log_severity_control(severity,clear){
+    log_severity_controls[severity] = !log_severity_controls[severity];
+    if(clear){
+        set_batch_visibility(`logging_${severity}`,log_severity_controls[severity],"hidden");    
+    }
+}
+
+function toggle_log_control(log_type,clear){
+    log_controls[log_type] = !log_controls[log_type];
+    if(clear){  
+    set_batch_visibility(`logging_type_${log_type}`,log_controls[log_type],"hidden2");
+    }
+}
+function clear_logs(log_element_id){
+    let log_element = document.getElementById(log_element_id);    
+    log_element.innerHTML = '';
+}
+function subscribe_to_logs(log_name,log_type,log_element_id){
+    let log_element = document.getElementById(log_element_id);
+    //Max 3000 characters in console for each log type
+    let max_chars = 10000;
     let max_message_len = 100;
-    ["INFO","WARNING","ERROR","DEBUG"].forEach((log_severity) =>{
+    ["info","warning","error","debug"].forEach((log_severity) =>{
         socket.on(`logging_${log_severity}_${log_name}`,function(message){
+            if(!log_controls[log_type]){
+                return;
+            }
+            if(!log_severity_controls[log_severity]){
+                return;
+            }
             if(message=="UISYSCMD::CLS"){
                 //Clear logs
                 message = "Awaiting new connection. <br>---------------------------------------------------------------------------------<br><br>";
@@ -185,14 +244,56 @@ function subscribe_to_logs(log_name,log_type){
             if(message.length > max_message_len){
                 message = message.slice(0,max_message_len) + "...";
             }
-            log_element.innerHTML = `<label class="logging_${log_severity}">|${log_name}| ${message}</label>` + log_element.innerHTML ;
+            log_element.innerHTML = `<label class="logging_${log_severity} logging_type_${log_type} ">|${log_name}| ${message}</label>` + log_element.innerHTML ;
             if(log_element.innerHTML.length > max_chars){
                 log_element.innerHTML = log_element.innerHTML.slice(0,max_chars) + "...";
             }
         });
     });        
 }
-
+function get_current_target_value(){
+    return parseFloat(document.getElementById("target_value_input").value);
+}
+function update_target_minmax_displays(){
+    let target_minmax = parseFloat(document.getElementById("target_minmax_input").value);
+    if((target_minmax!=0 && !target_minmax)){
+        return;
+    }
+    if(target_minmax == 0){
+        target_minmax = 0.1;
+    }    
+    target_minmax = Math.abs(target_minmax);    
+    const current_target = get_current_target_value();
+    document.getElementById("target_minmax_input").value = target_minmax;
+    set_horizontal_slider_minmax(target_minmax);
+    set_slider_minmax(target_minmax);
+    if(current_target > target_minmax || current_target < -target_minmax){
+        request_target_change(Math.max(-target_minmax,Math.min(target_minmax,current_target)));
+    }    
+}
+function set_slider_minmax(target_minmax){
+    slider_min = -target_minmax;
+    slider_max = target_minmax;
+    updateSliderAngle(
+        remap_slider_val_to_angle_range(get_current_target_value())
+    );
+}
+function set_target_minmax_value(minmax){
+    document.getElementById("target_minmax_input").value = minmax;        
+    update_target_minmax_displays();
+}
+function set_horizontal_slider_minmax(minmax){
+    document.getElementById("horizontal_slider").min = -minmax;
+    document.getElementById("horizontal_slider").max = minmax;
+    document.getElementById("horizontal_slider").step = minmax/50;
+    for(let i=1;i<10;i++){
+        if(i < 6){
+            document.getElementById(`horizontal_slider_label_${i}`).innerHTML = round_to_digit(((i-5)/4)*minmax,2);
+        }else{
+            document.getElementById(`horizontal_slider_label_${i}`).innerHTML = round_to_digit(((i-5)/4)*minmax,2);
+        }
+    }
+}
 function connect_com(device){    
     if(!device){
         return;
@@ -200,6 +301,7 @@ function connect_com(device){
     socket.emit("client_request_connect_com",
         {
             "port_name":device,
+            "command_id":document.getElementById("commandIDInput").value,
             "serial_rate":document.getElementById("serialRateInput").value,
             "serial_byte_size":document.getElementById("byteSizeSelect").value,
             "serial_parity":document.getElementById("paritySelect").value,
@@ -208,6 +310,10 @@ function connect_com(device){
     )
 }
 function disconnect_com(device){
+    document.getElementById(`button_disconnect_com_${device}`).innerHTML = `
+    <div class="lds-dual-ring-small"></div>      
+        Pending...
+    `;
     socket.emit("client_request_disconnect_com",
             {
                 "port_name":device
@@ -224,14 +330,26 @@ function set_control_mode(mode){
         "control_mode":mode
     });        
 }
-
+function configuration_file_select_open(){
+    document.getElementById("configuration_file_select").click();
+}
 function request_target_change(value){
+    value = Math.max(slider_min,Math.min(value,slider_max));
+    update_target_display_value(value);
     socket.emit("client_request_target_change",{
         "port_name":selected_device,
         "target_value":value
     });
 }
-
+function send_serial_input(){
+    
+}
+document.getElementById("target_value_input").oninput = (evt)=>{
+    const val = parseFloat(evt.target.value);
+    if(val || val==0){
+        request_target_change(val);
+    }
+};
 function zero_target(){    
     request_target_change(0);
 }
@@ -246,9 +364,9 @@ function toggle_device_status(){
     }
     let status;
     if(motor_enabled){
-        status = false;
+        status = 0;
     }else{
-        status = true;
+        status = 1;
     }
     socket.emit("client_request_set_device_status",{
         "port_name":selected_device,
@@ -265,14 +383,26 @@ function request_toggle_live_data(){
         "request_status":!sending_live_data
     });
 }
-function update_monitoring_variables(index,checked){
+function update_monitoring_variables(index,checked){    
     selected_monitoring_variables[index] = checked;
+    if(!selected_device){
+        return;
+    }
     socket.emit("client_request_change_monitoring_variables",{
         "port_name":selected_device,
         "monitoring_variables":selected_monitoring_variables
     });
 }
-
+function toggle_monitoring_variable(type){
+    const checked = document.getElementById(`${type}_monitor_checkbox`).checked;
+    document.getElementById(`${type}_monitor_checkbox`).checked = !checked;
+    monitoring_variable_names.forEach((variable_name,index)=>{
+        if(variable_name==type){
+            update_monitoring_variables(index,!checked);
+        }
+    });
+    
+}
 function setup_monitor_checkboxes(){
     ["target","volt_q","volt_d","curr_q","curr_d","velocity","angle"].forEach((variable,idx)=>{
         document.getElementById(`${variable}_monitor_checkbox`).onchange = (evt)=>{
@@ -281,6 +411,7 @@ function setup_monitor_checkboxes(){
     });
 }
 function initiate_connection(){
+    set_main_loader(false);
     socket.emit("client_request_initiate_connection",{});
 }
 let uplot = makeChart({
@@ -299,8 +430,8 @@ function toggle_topbar_menu(){
         document.getElementById("main_logo").classList.add("no_round_corner_bottom");
         topbar_open = true;
     }
-    
 }
+
 function switch_motor_enable_ui(status){
     if(status){        
         document.getElementById("enable_motor_toggle").innerHTML = `<button class="button3 enable_motor_toggle button_disable" onclick="toggle_device_status()">
@@ -342,6 +473,12 @@ function switch_tab(tab_name){
     })
     
 };
+function switch_monitoring_variables_display(monitoring_variables){
+    selected_monitoring_variables = monitoring_variables;
+    monitoring_variables.forEach((status,variable_idx)=>{
+        document.getElementById(`${monitoring_variable_names[variable_idx]}_monitor_checkbox`).checked = status;
+    });
+}
 function toggle_comms_settings(){
     if(comms_settings_open){        
         document.getElementById("comms_configure").classList.add("hidden");
@@ -360,6 +497,60 @@ function toggle_device_connect_settings(){
         device_connect_settings_open = true;
     }        
 }
+
+function reflect_log_status(){
+    ["page_logs","console_logs"].forEach((log_type)=>{
+        const ui_element_checked = document.getElementById(`log_control_${log_type}_checkbox`).checked;
+        set_batch_visibility(
+            `logging_type_${log_type}`,
+            ui_element_checked,
+            "hidden"
+            );
+        log_controls[log_type] = ui_element_checked;
+    });
+    
+    ["info","warning","error","debug"].forEach((log_severity)=>{
+        const ui_element_checked = document.getElementById(`log_control_${log_severity}_checkbox`).checked;
+        set_batch_visibility(
+            `logging_${log_severity}`,
+            ui_element_checked,
+            "hidden2"
+            );
+        log_severity_controls[log_severity] = ui_element_checked;
+    });
+}
+function change_pid_type(type){
+    ["position","velocity","curr_q","curr_d"].forEach((pid_type)=>{
+        if(pid_type == type){
+            document.getElementById(`pid_${pid_type}`).classList.remove("hidden");
+        }else{
+            document.getElementById(`pid_${pid_type}`).classList.add("hidden");
+        }
+    });
+}
+function change_parameter_var(parameter_var_name,value){
+    if(!selected_device){
+        return;
+    }
+    socket.emit("client_request_change_parameter_var",{
+        "port_name":selected_device,
+        "parameter_var_name":parameter_var_name,
+        "value":value
+    })
+}
+function change_monitor_downsample(amount){
+    if(amount==0 || amount){
+        amount = Math.min(Math.max(amount,0),5000);
+        socket.emit("client_request_change_monitor_downsample",{
+            "port_name":selected_device,
+            "value":amount
+        })
+        document.getElementById("monitor_downsample").value = amount;
+    }
+}
+function jogging_control(val){
+    request_target_change(get_current_target_value()+val*slider_max);
+};
 setInterval(function() {
     let min_val = -1;
     let max_val = 1;
@@ -391,17 +582,53 @@ setInterval(function() {
         live_data["angle"],
     ]);
 }, 5);
-
 horizontal_slider.addEventListener("input",throttle(()=>{    
     const value = horizontal_slider.value;
     request_target_change(value);
 },1));
+window.addEventListener("resize", ()=>{
+    make_clear_logs_button_right();    
+});
+function make_clear_logs_button_right(){
+    const rect = document.getElementById("logs_message_box").getBoundingClientRect();
+    document.getElementById("clear_logs_button").style = `width:${rect.width}px !important`;
+}
+function set_device_connected_status(connected){
+    if(connected){
+        document.getElementById("connection_button").classList.add("button_connected");
+        document.getElementById("connection_button").innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        Connected`;
+        document.getElementById("mask_panel").classList.add("hidden");
+    }else{
+        document.getElementById("connection_button").classList.remove("button_connected");
+        document.getElementById("connection_button").innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-stop-circle"><circle cx="12" cy="12" r="10"></circle><rect x="9" y="9" width="6" height="6"></rect></svg>
+        Connect
+        `;
+        selected_device = null;
+        document.getElementById("mask_panel").classList.remove("hidden");
+    }
+}
+function set_main_loader(val){
+    if(val){
+        document.getElementById("loading_bar").classList.remove("hidden");
+    }else{
+        document.getElementById("loading_bar").classList.add("hidden");
+    }
+    
+}
+function unselect_device(){    
+    selected_device = null;
+}
+make_clear_logs_button_right();
 setup_monitor_checkboxes();
-subscribe_to_logs("general","page_logs");
-subscribe_to_logs("device_page","page_logs");
-subscribe_to_logs("serial_connection","console_logs");
-subscribe_to_logs("serial_console","console_logs");
-initiate_connection();
-switch_tab("parameters_panel");
-toggle_device_connect_settings();
+reflect_log_status();
+subscribe_to_logs("general","page_logs","logs_message_box");
+subscribe_to_logs("device_page","page_logs","logs_message_box");
+subscribe_to_logs("serial_connection","console_logs","logs_message_box");
+subscribe_to_logs("serial_console","console_logs","logs_message_box");
+subscribe_to_logs("serial_raw_input","serial_raw_input","serial_raw_input");
 update_target_display_value(0);
+update_actual_target_value(0);
+initiate_connection();

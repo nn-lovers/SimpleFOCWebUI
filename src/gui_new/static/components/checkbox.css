@@ -83,11 +83,7 @@
   display: block;
 }
 
-.b-contain:hover input[type="checkbox"]:not([disabled]) ~ .b-input,
-.b-contain input[type="checkbox"]:focus ~ .b-input {
-  background: #e2e8f0;
-  border-color: rgb(33, 33, 33);
-}
+
 
 .b-contain:hover input[type="radio"]:not([disabled]) ~ .b-input,
 .b-contain input[type="radio"]:focus ~ .b-input {
@@ -98,38 +94,105 @@
 .b-contain input:focus ~ .b-input {
   box-shadow: 0 0 0 2px #60a5fa;
 }
+.b-contain:hover input[type="checkbox"]:not([disabled]) ~ .b-input,
+.b-contain input[type="checkbox"]:focus ~ .b-input {
+  background: #e2e8f0;
+  border-color: rgb(33, 33, 33);
+}
+.b-contain input[type="checkbox"]:focus ~ .b-input1 {
+  background: #e2e8f0;
+  border-color: rgb(75, 75, 75);
+}
+.b-contain input[type="checkbox"]:focus ~ .b-input2 {
+  background: #e2e8f0;
+  border-color:#ffe066;  
+}
+.b-contain input[type="checkbox"]:focus ~ .b-input3 {
+  background: #e2e8f0;
+  border-color:#b197fc;  
+}
+.b-contain input[type="checkbox"]:focus ~ .b-input4 {
+  background: #e2e8f0;
+  border-color:#91a7ff;  
+}
+.b-contain input[type="checkbox"]:focus ~ .b-input5 {
+  background: #e2e8f0;
+  border-color:#74c0fc;  
+}
+.b-contain input[type="checkbox"]:focus ~ .b-input6 {
+  background: #e2e8f0;
+  border-color:#63e6be;  
+}
+.b-contain input[type="checkbox"]:focus ~ .b-input7 {
+  background: #e2e8f0;
+  border-color:#ffa94d; 
+}
 
 .b-contain input[type="checkbox"]:checked ~ .b-input {
   background: rgb(75, 75, 75);
-  border-color: rgb(75, 75, 75);
+  border-color: rgb(75, 75, 75);  
+}
+.b-contain input[type="checkbox"]:checked ~ .b-input2 {
+  background:#ffe066;
+  border-color:#ffe066;  
+}
+.b-contain input[type="checkbox"]:checked ~ .b-input3 {
+  background:#b197fc;
+  border-color:#b197fc;   
+}
+.b-contain input[type="checkbox"]:checked ~ .b-input4 {
+  background:#91a7ff;
+  border-color:#91a7ff;  
+}
+.b-contain input[type="checkbox"]:checked ~ .b-input5 {
+  background:#74c0fc;
+  border-color:#74c0fc;  
+}
+.b-contain input[type="checkbox"]:checked ~ .b-input6 {
+  background:#63e6be;
+  border-color:#63e6be;  
+}
+.b-contain input[type="checkbox"]:checked ~ .b-input7 {
+  background:#ffa94d;
+  border-color:#ffa94d;
+}
+.b-contain input[type="checkbox"]:checked:focus ~ .b-input1 {
+  background: rgb(75, 75, 75);
+  border-color: rgb(33, 33, 33);
+}
+.b-contain input[type="checkbox"]:checked:focus ~ .b-input2 {
+  background:#ffe066;
+  border-color:#ffe066;  
+}
+.b-contain input[type="checkbox"]:checked:focus ~ .b-input3 {
+  background:#b197fc;
+  border-color:#b197fc;   
+}
+.b-contain input[type="checkbox"]:checked:focus ~ .b-input4 {
+  background:#91a7ff;
+  border-color:#91a7ff;  
+}
+.b-contain input[type="checkbox"]:checked:focus ~ .b-input5 {
+  background:#74c0fc;
+  border-color:#74c0fc;  
+}
+.b-contain input[type="checkbox"]:checked:focus ~ .b-input6 {
+  background:#63e6be;
+  border-color:#63e6be;  
+}
+.b-contain input[type="checkbox"]:checked:focus ~ .b-input7 {
+  background:#ffa94d;
+  border-color:#ffa94d;
 }
 
-.b-contain input[type="radio"]:checked ~ .b-input {
-  background: #3b82f6;
-  border-color: #1d4ed8;
-}
-
-.b-contain input[type="checkbox"]:disabled ~ .b-input,
 .b-contain input[type="radio"]:disabled ~ .b-input {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.b-contain input[type="radio"]:disabled ~ .b-input::after {
-  background: #ffffff;
-}
-
 .b-contain:hover input[type="checkbox"]:not([disabled]):checked ~ .b-input,
-.b-contain input[type="checkbox"]:checked:focus ~ .b-input {
-  background: rgb(75, 75, 75);
-  border-color: rgb(33, 33, 33);
-}
 
-.b-contain:hover input[type="radio"]:not([disabled]):checked ~ .b-input,
-.b-contain input[type="radio"]:checked:focus ~ .b-input {
-  background: #2563eb;
-  border-color: #1e40af;
-}
+
 
 
 
@@ -235,10 +298,7 @@
   box-shadow: 0 0 0 2px #60a5fa;
 }
 
-.c-contain input[type="checkbox"]:checked ~ .c-input {
-  background: rgb(75, 75, 75);
-  border-color: rgb(75, 75, 75);
-}
+
 
 .c-contain input[type="radio"]:checked ~ .c-input {
   background: #3b82f6;
@@ -259,6 +319,10 @@
 .c-contain input[type="checkbox"]:checked:focus ~ .c-input {
   background: rgb(75, 75, 75);
   border-color: rgb(33, 33, 33);
+}
+.c-contain input[type="checkbox"]:checked ~ .c-input {
+  background: rgb(75, 75, 75);
+  border-color: rgb(75, 75, 75);
 }
 
 .c-contain:hover input[type="radio"]:not([disabled]):checked ~ .c-input,

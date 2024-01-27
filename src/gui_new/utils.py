@@ -1,11 +1,14 @@
 import serial
 
+DEFAULT_PARAMS = {
+    
+}
 
 class LOG_SEVERITY:
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    DEBUG = "DEBUG"
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+    DEBUG = "debug"
 
 
 class SERIAL_MONITOR_DATA_TYPE:

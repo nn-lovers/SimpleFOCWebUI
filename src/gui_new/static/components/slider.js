@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     // Handle mouse move on the document
     function updateSliderValue(percentage) {
-      const value = Math.round(remap_angle_percentage_to_slider_range(percentage)*100)/100;      
+      const value = round_to_digit(remap_angle_percentage_to_slider_range(percentage),2); 
       request_target_change(value);
     }
     let prev_angle = 0;
@@ -72,40 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (isDragging) {
           const angle = getAngle(event);
           let percentage = angleToPercentage(angle + offset_angle);
-          if(end_stopped_right){
-            console.log("Stopped");
-            const percentage_velocity = percentage - prev_percentage;
-            if(percentage_velocity < 0 && Math.abs(percentage_velocity)<0.5){
-              console.log("Restart",percentage_velocity);
-              //Going left, ignoring the jump (false positive - actually going right)
-              end_stopped_right = false;
-              end_stopped_left = false;
-              end_stopped_right = false;
-              prev_angle = 0;
-              prev_percentage = 1;
-              offset_angle = angle;              
-            }else{
-              prev_angle = angle;
-              prev_percentage = percentage;
-            }
-            return;
-          }else{
-            if(percentage > 0.9){
-              //At the boundary towards 1
-              const velocity = angle-prev_angle;
-              if(velocity > 0){
-                //If trying to go forward still
-                if(percentage > 0.95){
-                  //But we are pretty much at the edge
-                  end_stopped_right = true;
-                  percentage = 1;
-                }
-              }
-            }
-            prev_angle = angle;
-            prev_percentage = percentage;
-            updateSliderValue(percentage);
-          }          
+          updateSliderValue(percentage);
         }
       },1)();
     });    

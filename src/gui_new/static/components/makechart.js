@@ -136,7 +136,7 @@ function makeChart(cfg) {
       },
       Object.assign({
         label: "Target",
-        width: 3 / devicePixelRatio,
+        width: 1.5 / devicePixelRatio,
         drawStyle: drawStyles.line,
         lineInterpolation: 3,
         paths,
@@ -147,7 +147,7 @@ function makeChart(cfg) {
       }),
       Object.assign({
         label: "Volt_Q",
-        width: 3 / devicePixelRatio,
+        width: 1.5 / devicePixelRatio,
         drawStyle: drawStyles.line,
         lineInterpolation: 3,
         paths,
@@ -158,7 +158,7 @@ function makeChart(cfg) {
       }),
       Object.assign({
         label: "Volt_D",
-        width: 3 / devicePixelRatio,
+        width: 1.5 / devicePixelRatio,
         drawStyle: drawStyles.line,
         lineInterpolation: 3,
         paths,
@@ -169,7 +169,7 @@ function makeChart(cfg) {
       }),
       Object.assign({
         label: "Curr_Q",
-        width: 3 / devicePixelRatio,
+        width: 1.5 / devicePixelRatio,
         drawStyle: drawStyles.line,
         lineInterpolation: 3,
         paths,
@@ -180,7 +180,7 @@ function makeChart(cfg) {
       }),
       Object.assign({
         label: "Curr_D",
-        width: 3 / devicePixelRatio,
+        width: 1.5 / devicePixelRatio,
         drawStyle: drawStyles.line,
         lineInterpolation: 3,
         paths,
@@ -191,7 +191,7 @@ function makeChart(cfg) {
       }),
       Object.assign({
         label: "Velocity",
-        width: 3 / devicePixelRatio,
+        width: 1.5 / devicePixelRatio,
         drawStyle: drawStyles.line,
         lineInterpolation: 3,
         paths,
@@ -202,7 +202,7 @@ function makeChart(cfg) {
       }),
       Object.assign({
         label: "Angle",
-        width: 3 / devicePixelRatio,
+        width: 1.5 / devicePixelRatio,
         drawStyle: drawStyles.line,
         lineInterpolation: 3,
         paths,

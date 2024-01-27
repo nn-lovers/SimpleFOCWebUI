@@ -173,18 +173,17 @@
     cursor: pointer;
     -webkit-appearance: none;
     margin-top: -21px;
+    
   }
   input[type=range]:focus::-webkit-slider-runnable-track {
     background: #e9ecef;
   }
   input[type=range]::-moz-range-track {
     width: 100%;
-    height: 10px;
+    height: 1px;
     cursor: pointer;
-    animate: 0.2s;
-    box-shadow: 1px 1px 1px #868e96;
+    animate: 0.2s;    
     background: #e9ecef;
-    border-radius: 5px;
     border: 1px solid #868e96;
   }
   input[type=range]::-moz-range-thumb {

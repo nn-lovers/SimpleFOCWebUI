@@ -11,41 +11,47 @@ from threading import Thread, Event
 from serial.tools import list_ports
 
 
-def simplefoc_device_command(func):
-    def wrapper(cls, *args, **kwargs):
-        if cls.simple_foc_device is None:
-            return
-        ret, command = func(cls, *args, **kwargs)
-        if ret:
-            cls.server.log_info("serial_console", f"Sent: {command}")
-        else:
-            cls.server.log_error("serial_console", f"Failed to Send: {command}")
-
-    return wrapper
-
-
-def simplefoc_device_command_multiple(func):
-    def wrapper(cls, *args, **kwargs):
-        if cls.simple_foc_device is None:
-            return
-        for ret, command in func(cls, *args, **kwargs):
+def simplefoc_device_command(log=True):
+    def _inner(func):
+        def wrapper(cls, *args, **kwargs):
+            if cls.simple_foc_device is None:
+                return
+            ret, command = func(cls, *args, **kwargs)
             if ret:
-                cls.server.log_info("serial_console", f"Sent: {command}")
+                if log:
+                    cls.server.log_debug("serial_console", f"Sent: {command}")
             else:
                 cls.server.log_error("serial_console", f"Failed to Send: {command}")
+        return wrapper
+    return _inner
 
-    return wrapper
+
+def simplefoc_device_command_multiple(log=True):
+    def _inner(func):
+        def wrapper(cls, *args, **kwargs):
+            if cls.simple_foc_device is None:
+                return
+            for ret, command in func(cls, *args, **kwargs):
+                if ret:
+                    if log:
+                        cls.server.log_debug("serial_console", f"Sent: {command}")
+                else:
+                    cls.server.log_error("serial_console", f"Failed to Send: {command}")
+        return wrapper
+    return _inner
 
 
 class SimpleFOCSerialConnection:
-    def __init__(self, server, port_name, serial_rate, serial_byte_size, serial_parity, stop_bits):
+    
+    def __init__(self, server, port_name, command_id, serial_rate, serial_byte_size, serial_parity, stop_bits,state_update_callback):
         self.server = server
         self.simple_foc_device = None
+        self.pulled_initial_params = False
         try:
             self.serial_connection = SerialConnection(
                 port_name, serial_rate, serial_byte_size, serial_parity, stop_bits, data_read_callback=self.parse_serial_data_read
             )
-            self.simple_foc_device = SimpleFOCDevice(self.serial_connection.serial_comm)
+            self.simple_foc_device = SimpleFOCDevice(self.serial_connection.serial_comm,command_id,state_update_callback)            
         except Exception as e:
             self.server.log_error("general", str(e))
             raise
@@ -55,24 +61,151 @@ class SimpleFOCSerialConnection:
         self.monitor_send_frequency = 10
 
         self.server.log_debug("general", "Serial comm established.")
+        self.parameter_variable_setters = {
+            "phase_resistance":self.sendPhaseResistance,
+            "current_limit":self.sendCurrentLimit,
+            "velocity_limit":self.sendVelocityLimit,
+            "voltage_limit":self.sendVoltageLimit,
+            "motion_downsample":self.sendMotionDownsample,
+            "modulation_type":self.sendModulationType,
+            "modulation_centered":self.sendModulationCentered,
+        }
+        self.PID_param_setters = {
+            "P_gain":self.sendProportionalGain,
+            "I_gain":self.sendIntegralGain,
+            "D_gain":self.sendDerivativeGain,
+            "output_ramp":self.sendOutputRamp,
+            "output_limit":self.sendOutputLimit,
+        }
+        self.LPF_param_setters = {            
+            "low_pass_filter":self.sendLowPassFilter
+        }
+        self.PID_type_switch = {
+            "position":self.simple_foc_device.PIDAngle,
+            "velocity":self.simple_foc_device.PIDVelocity,
+            "curr_d":self.simple_foc_device.PIDCurrentD,
+            "curr_q":self.simple_foc_device.PIDCurrentQ
+        }
+        self.LPF_type_switch = {
+            "position":self.simple_foc_device.LPFAngle,
+            "velocity":self.simple_foc_device.LPFVelocity,
+            "curr_d":self.simple_foc_device.LPFCurrentD,
+            "curr_q":self.simple_foc_device.LPFCurrentQ
+        }
+    def sendRaw(self,raw):
+        self.serial_connection.write(f"{raw}\n".encode("utf-8"))
+        
+    def is_PID_parameter(self,parameter_var_name):
+        for val in self.PID_param_setters:
+            if val in parameter_var_name:
+                return val        
+        return None
+    def is_LPF_parameter(self,parameter_var_name):
+        for val in self.LPF_param_setters:
+            if val in parameter_var_name:
+                return val
+        return None
 
-    @simplefoc_device_command
+    def get_pid_type(self,type_name):
+        return self.PID_type_switch[type_name]
+
+    def get_lpf_type(self,type_name):
+        return self.LPF_type_switch[type_name]
+    
+    def changeMotorParameterVariable(self,parameter_var_name,value):
+        if parameter_var_name in self.parameter_variable_setters:            
+            return self.parameter_variable_setters[parameter_var_name](value)
+        else:
+            parameter_type = self.is_PID_parameter(parameter_var_name)
+            if parameter_type is not None:
+                type_name = parameter_var_name.replace(f"_{parameter_type}","")
+                pid_type = self.get_pid_type(type_name)
+                return self.PID_param_setters[parameter_type](pid_type,value)
+            
+            parameter_type = self.is_LPF_parameter(parameter_var_name)
+            if parameter_type is not None:
+                type_name = parameter_var_name.replace(f"_{parameter_type}","")
+                lpf_type = self.get_lpf_type(type_name)
+                return self.LPF_param_setters[parameter_type](lpf_type,value)
+    
+    @simplefoc_device_command()
     def sendControlType(self, control_type):
         return self.simple_foc_device.sendControlType(control_type)
 
-    @simplefoc_device_command
+    @simplefoc_device_command()
     def sendTargetValue(self, target_value):
         return self.simple_foc_device.sendTargetValue(target_value)
 
-    @simplefoc_device_command
+    @simplefoc_device_command()
     def sendDeviceStatus(self, device_status):
         return self.simple_foc_device.sendDeviceStatus(device_status)
 
-    @simplefoc_device_command
+    @simplefoc_device_command()
     def sendMonitorVariables(self, monitoring_variables):
         return self.simple_foc_device.sendMonitorVariables(monitoring_variables)
 
-    @simplefoc_device_command_multiple
+    @simplefoc_device_command()
+    def sendMotionDownsample(self, motion_downsample):
+        return self.simple_foc_device.sendMotionDownsample(motion_downsample)
+
+    @simplefoc_device_command()
+    def sendProportionalGain(self,pid_type, value):
+        return self.simple_foc_device.sendProportionalGain(pid_type,value)
+    
+    @simplefoc_device_command()
+    def sendIntegralGain(self,pid_type, value):
+        return self.simple_foc_device.sendIntegralGain(pid_type,value)
+    
+    @simplefoc_device_command()
+    def sendDerivativeGain(self,pid_type, value):
+        return self.simple_foc_device.sendDerivativeGain(pid_type,value)
+    
+    @simplefoc_device_command()
+    def sendOutputRamp(self,pid_type, value):
+        return self.simple_foc_device.sendOutputRamp(pid_type,value)
+
+    @simplefoc_device_command()
+    def sendOutputLimit(self,pid_type, value):
+        return self.simple_foc_device.sendOutputLimit(pid_type,value)
+    
+    @simplefoc_device_command()
+    def sendLowPassFilter(self,lpf_type, value):
+        return self.simple_foc_device.sendLowPassFilter(lpf_type,value)
+    
+    @simplefoc_device_command()
+    def sendVelocityLimit(self,value):
+        return self.simple_foc_device.sendVelocityLimit(value)
+    
+    @simplefoc_device_command()
+    def sendVoltageLimit(self,value):
+        return self.simple_foc_device.sendVoltageLimit(value)
+
+    @simplefoc_device_command()
+    def sendCurrentLimit(self,value):
+        return self.simple_foc_device.sendCurrentLimit(value)
+    
+    @simplefoc_device_command()
+    def sendPhaseResistance(self,value):
+        return self.simple_foc_device.sendPhaseResistance(value)
+    
+    @simplefoc_device_command()
+    def sendSensorZeroElectrical(self):
+        return self.simple_foc_device.sendSensorZeroElectrical()
+    
+    @simplefoc_device_command()
+    def sendSensorZeroOffset(self):
+        return self.simple_foc_device.sendSensorZeroOffset()
+    
+    @simplefoc_device_command()
+    def sendModulationCentered(self,value):
+        return self.simple_foc_device.sendModulationCentered(value)
+    
+    @simplefoc_device_command()
+    def sendModulationType(self,type):
+        return self.simple_foc_device.sendModulationType(type)
+
+    
+    @simplefoc_device_command_multiple()
     def pullConfiguration(self):
         for ret, command in self.simple_foc_device.pullConfiguration():
             yield ret, command
@@ -88,9 +221,12 @@ class SimpleFOCSerialConnection:
     def parse_serial_data_read(self, data):
         if self.simple_foc_device is None:
             return
+        if not self.pulled_initial_params:
+            self.pullConfiguration()
+            self.pulled_initial_params = True
         data_type, value = self.simple_foc_device.parse(data)
         if data_type == SERIAL_MONITOR_DATA_TYPE.MONITORING:
-            # Throttle/Buffer a few serials at once before sending otherwise will flood
+            # Throttle/Buffer a few serials at once before sending otherwise will flood            
             if monotonic() - self.last_monitor_send > 1 / self.monitor_send_frequency:
                 self.last_monitor_send = monotonic()
                 # self.server.log_info("serial_console",f"{monotonic()}::{self.serial_monitor_buffer}")
@@ -98,9 +234,9 @@ class SimpleFOCSerialConnection:
             else:
                 self.serial_monitor_buffer.append(value)
         elif data_type == SERIAL_MONITOR_DATA_TYPE.STATES:
-            self.server.log_info("serial_console", f"{monotonic()}::{value}")
+            self.server.log_debug("serial_console", f"{monotonic()}::{value}")
         elif data_type == SERIAL_MONITOR_DATA_TYPE.COMMAND:
-            self.server.log_info("serial_console", f"{monotonic()}::{value}")
+            self.server.log_debug("serial_console", f"{monotonic()}::{value}")
 
 
 class SerialConnection:
@@ -187,7 +323,7 @@ class SerialInterface:
             connection.stop()
             del self.serial_connections[port_name]
 
-    def connect_to_serial(self, port_name, serial_rate, serial_byte_size, serial_parity, stop_bits):
+    def connect_to_serial(self, port_name, command_id, serial_rate, serial_byte_size, serial_parity, stop_bits,state_update_callback=None):
         if port_name is None:
             self.server.log_error("serial_connection", "Connection Port Name is None!")
             return
@@ -202,7 +338,7 @@ class SerialInterface:
                     "general", "New connection established."
                 )
                 serial_connection = SimpleFOCSerialConnection(
-                    self.server, port_name, serial_rate, serial_byte_size, serial_parity, stop_bits
+                    self.server, port_name, command_id, serial_rate, serial_byte_size, serial_parity, stop_bits,state_update_callback
                 )
                 self.serial_connections[port_name] = serial_connection
             return serial_connection

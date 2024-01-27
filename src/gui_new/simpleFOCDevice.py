@@ -4,7 +4,6 @@ from threading import Thread, Event
 import traceback
 import serial
 
-
 class PIDController:
     P = 0
     D = 0
@@ -93,7 +92,7 @@ class SimpleFOCDevice:
         "angle",
     ]
 
-    def __init__(self, serial_comm, devCommandID="M"):
+    def __init__(self, serial_comm, command_id="M",state_update_callback=None):
         self.update_states_thread = None
         self._stopped = Event()
         # serial connection variables
@@ -104,7 +103,7 @@ class SimpleFOCDevice:
         self.connectionID = ""
 
         # command id of the device
-        self.devCommandID = devCommandID
+        self.devCommandID = command_id
 
         # motion control paramters
         self.PIDVelocity = PIDController(self.VELOCITY_PID)
@@ -140,24 +139,31 @@ class SimpleFOCDevice:
         self.target = 0
 
         # general variables
-        self.phaseResistance = 3.5
+        self.phaseResistance = 8
         self.deviceStatus = 1
         self.modulationType = 0
         self.modulationCentered = 1
 
         # sensor variables
         self.sensorElectricalZero = 0
-        self.sensorZeroOffset = 0
+        self.sensorZeroOffset = 0        
+            
+        self.start_update_states_thread(state_update_callback)
 
-        self.pullConfiguration()
-        self.start_update_states_thread()
+    def pullAllConfiguration(self):
+        for ret, command in self.pullConfiguration():
+            pass
 
-    def start_update_states_thread(self):
+    def start_update_states_thread(self,state_update_callback):
         self._stopped = Event()
-
         def _t():
             while not self._stopped.is_set():
+                #self.pullAllConfiguration()
+                time.sleep(1)
+                continue
                 self.updateStates()
+                if state_update_callback is not None:
+                    state_update_callback(self)
                 time.sleep(1)
 
         self.update_states_thread = Thread(target=_t)
@@ -168,6 +174,45 @@ class SimpleFOCDevice:
         if self.update_states_thread is not None:
             self.update_states_thread.join()
             self.update_states_thread = None
+
+    def serialize_simple(self):
+        return {
+            "phase_resistance":self.phaseResistance,
+            "current_limit":self.currentLimit,
+            "velocity_limit":self.velocityLimit,
+            "voltage_limit":self.voltageLimit,
+            "motion_downsample":self.motionDownsample,
+            "modulation_type":self.modulationType,
+            "modulation_centered":self.modulationCentered,
+
+            #Position
+            "position_P_gain":self.PIDAngle.P,
+            "position_I_gain":self.PIDAngle.I,
+            "position_D_gain":self.PIDAngle.D,
+            "position_output_ramp":self.PIDAngle.outputRamp,
+            "position_output_limit":self.PIDAngle.outputLimit,
+
+            #Velocity
+            "velocity_P_gain":self.PIDVelocity.P,
+            "velocity_I_gain":self.PIDVelocity.I,
+            "velocity_D_gain":self.PIDVelocity.D,
+            "velocity_output_ramp":self.PIDVelocity.outputRamp,
+            "velocity_output_limit":self.PIDVelocity.outputLimit,
+
+            #Current D
+            "curr_d_P_gain":self.PIDCurrentD.P,
+            "curr_d_I_gain":self.PIDCurrentD.I,
+            "curr_d_D_gain":self.PIDCurrentD.D,
+            "curr_d_output_ramp":self.PIDCurrentD.outputRamp,
+            "curr_d_output_limit":self.PIDCurrentD.outputLimit,
+
+            #Current Q
+            "curr_q_P_gain":self.PIDCurrentQ.P,
+            "curr_q_I_gain":self.PIDCurrentQ.I,
+            "curr_q_D_gain":self.PIDCurrentQ.D,
+            "curr_q_output_ramp":self.PIDCurrentQ.outputRamp,
+            "curr_q_output_limit":self.PIDCurrentQ.outputLimit,
+        }
 
     def toJSON(self):
         valuesToSave = {
@@ -261,7 +306,7 @@ class SimpleFOCDevice:
         if value != "":
             pid.P = value
         return self.setCommand(str(pid.cmd) + "P", str(value))
-
+        
     def sendIntegralGain(self, pid, value):
         if value != "":
             pid.I = value
@@ -442,73 +487,73 @@ class SimpleFOCDevice:
         yield self.sendDeviceStatus("")
         return True, "---Pull Configuration---"
 
-    def parsePIDFResponse(self, pid, lpf, comandResponse):
-        if "P" in comandResponse:
-            pid.P = float(comandResponse.replace("P: ", ""))
-        if "I" in comandResponse:
-            pid.I = float(comandResponse.replace("I: ", ""))
-        if "D" in comandResponse:
-            pid.D = float(comandResponse.replace("D: ", ""))
-        if "ramp" in comandResponse:
-            val = comandResponse.replace("ramp:", "")
+    def parsePIDFResponse(self, pid, lpf, commandResponse):
+        if "P" in commandResponse:
+            pid.P = float(commandResponse.replace("P: ", ""))
+        if "I" in commandResponse:
+            pid.I = float(commandResponse.replace("I: ", ""))
+        if "D" in commandResponse:
+            pid.D = float(commandResponse.replace("D: ", ""))
+        if "ramp" in commandResponse:
+            val = commandResponse.replace("ramp:", "")
             if "ovf" in val:
                 pid.outputRamp = 0
             else:
-                pid.outputRamp = float(comandResponse.replace("ramp:", ""))
-        if "limit" in comandResponse:
-            pid.outputLimit = float(comandResponse.replace("limit:", ""))
-        if "Tf" in comandResponse:
-            lpf.Tf = float(comandResponse.replace("Tf: ", ""))
+                pid.outputRamp = float(commandResponse.replace("ramp:", ""))
+        if "limit" in commandResponse:
+            pid.outputLimit = float(commandResponse.replace("limit:", ""))
+        if "Tf" in commandResponse:
+            lpf.Tf = float(commandResponse.replace("Tf: ", ""))
 
-    def parseLimitsResponse(self, comandResponse):
-        if "vel:" in comandResponse:
-            self.velocityLimit = float(comandResponse.replace("vel:", ""))
-        elif "volt:" in comandResponse:
-            self.voltageLimit = float(comandResponse.replace("volt:", ""))
-        elif "curr:" in comandResponse:
-            self.currentLimit = float(comandResponse.replace("curr:", ""))
+    def parseLimitsResponse(self, commandResponse):
+        if "vel:" in commandResponse:
+            self.velocityLimit = float(commandResponse.replace("vel:", ""))
+        elif "volt:" in commandResponse:
+            self.voltageLimit = float(commandResponse.replace("volt:", ""))
+        elif "curr:" in commandResponse:
+            self.currentLimit = float(commandResponse.replace("curr:", ""))
 
-    def parseMotionResponse(self, comandResponse):
-        if "downsample" in comandResponse:
-            self.motionDownsample = float(comandResponse.replace("downsample:", ""))
-        elif "torque" in comandResponse:
+    def parseMotionResponse(self, commandResponse):
+        if "downsample" in commandResponse:
+            self.motionDownsample = float(commandResponse.replace("downsample:", ""))
+        elif "torque" in commandResponse:
             self.controlType = 0
-        elif "angle open" in comandResponse:
+        elif "angle open" in commandResponse:
             self.controlType = 4
-        elif "angle" in comandResponse:
+        elif "angle" in commandResponse:
             self.controlType = 2
-        elif "vel open" in comandResponse:
+        elif "vel open" in commandResponse:
             self.controlType = 3
-        elif "vel" in comandResponse:
+        elif "vel" in commandResponse:
             self.controlType = 1
 
-    def parsePWMModResponse(self, comandResponse):
-        if "center" in comandResponse:
-            self.modulationCentered = float(comandResponse.replace("center:", ""))
-        elif "type" in comandResponse:
-            comandResponse = comandResponse.replace("type:", "")
-            if "Sine" in comandResponse:
+    def parsePWMModResponse(self, commandResponse):
+        if "center" in commandResponse:
+            self.modulationCentered = float(commandResponse.replace("center:", ""))
+        elif "type" in commandResponse:
+            commandResponse = commandResponse.replace("type:", "")
+            if "Sine" in commandResponse:
                 self.modulationType = self.SINE_PWM
-            elif "SVPWM" in comandResponse:
+            elif "SVPWM" in commandResponse:
                 self.modulationType = self.SPACE_VECTOR_PWM
-            elif "Trap 120" in comandResponse:
+            elif "Trap 120" in commandResponse:
                 self.modulationType = self.TRAPEZOIDAL_120
-            elif "Trap 150" in comandResponse:
+            elif "Trap 150" in commandResponse:
                 self.modulationType = self.TRAPEZOIDAL_150
 
-    def parseTorqueResponse(self, comandResponse):
-        if "volt" in comandResponse:
+    def parseTorqueResponse(self, commandResponse):
+        if "volt" in commandResponse:
             self.torqueType = 0
-        elif "dc curr" in comandResponse:
+        elif "dc curr" in commandResponse:
             self.torqueType = 1
-        elif "foc curr" in comandResponse:
+        elif "foc curr" in commandResponse:
             self.torqueType = 2
 
-    def parseSensorResponse(self, comandResponse):
-        if "el. offset" in comandResponse:
-            self.sensorElectricalZero = float(comandResponse.replace("el. offset:", ""))
-        elif "offset" in comandResponse:
-            self.sensorZeroOffset = float(comandResponse.replace("offset:", ""))
+    def parseSensorResponse(self, commandResponse):
+        if "el. offset" in commandResponse:
+            self.sensorElectricalZero = float(commandResponse.replace("el. offset:", ""))
+        elif "offset" in commandResponse:
+            self.sensorZeroOffset = float(commandResponse.replace("offset:", ""))
 
     def parseLiveDataMonitoring(self, data):
         # Sent in order of enabling
@@ -534,9 +579,9 @@ class SimpleFOCDevice:
                 serialized[key] = self.state_variables[key]
         return serialized
 
-    def parseMonitorResponse(self, comandResponse):
-        if "all" in comandResponse:
-            varStr = comandResponse.replace("all:", "")
+    def parseMonitorResponse(self, commandResponse):
+        if "all" in commandResponse:
+            varStr = commandResponse.replace("all:", "")
             states = varStr.rstrip().split("\t", 7)
 
             self.state_variables["target"] = states[0]
@@ -547,60 +592,63 @@ class SimpleFOCDevice:
             self.state_variables["velocity"] = states[5]
             self.state_variables["angle"] = states[6]
 
-        if "target" in comandResponse:
-            self.state_variables["target"] = float(
-                comandResponse.replace("target:", "")
-            )
-        elif "Vq" in comandResponse:
-            self.state_variables["volt_q"] = float(comandResponse.replace("Vq:", ""))
-        elif "Vd" in comandResponse:
-            self.state_variables["volt_d"] = float(comandResponse.replace("Vd:", ""))
-        elif "Cq" in comandResponse:
-            self.state_variables["curr_q"] = float(comandResponse.replace("Cq:", ""))
-        elif "Cd" in comandResponse:
-            self.state_variables["curr_d"] = float(comandResponse.replace("Cd:", ""))
-        elif "vel" in comandResponse:
-            self.state_variables["velocity"] = float(comandResponse.replace("vel:", ""))
-        elif "angle" in comandResponse:
-            self.state_variables["angle"] = float(comandResponse.replace("angle:", ""))
+        if "target" in commandResponse:
+            try:
+                self.state_variables["target"] = float(
+                    commandResponse.replace("target:", "")
+                )
+            except ValueError:
+                print(commandResponse)
+        elif "Vq" in commandResponse:
+            self.state_variables["volt_q"] = float(commandResponse.replace("Vq:", ""))
+        elif "Vd" in commandResponse:
+            self.state_variables["volt_d"] = float(commandResponse.replace("Vd:", ""))
+        elif "Cq" in commandResponse:
+            self.state_variables["curr_q"] = float(commandResponse.replace("Cq:", ""))
+        elif "Cd" in commandResponse:
+            self.state_variables["curr_d"] = float(commandResponse.replace("Cd:", ""))
+        elif "vel" in commandResponse:
+            self.state_variables["velocity"] = float(commandResponse.replace("vel:", ""))
+        elif "angle" in commandResponse:
+            self.state_variables["angle"] = float(commandResponse.replace("angle:", ""))
 
-    def parseResponses(self, comandResponse):
-        if "PID vel" in comandResponse:
-            comandResponse = comandResponse.replace("PID vel|", "")
-            self.parsePIDFResponse(self.PIDVelocity, self.LPFVelocity, comandResponse)
-        elif "PID angle" in comandResponse:
-            comandResponse = comandResponse.replace("PID angle|", "")
-            self.parsePIDFResponse(self.PIDAngle, self.LPFAngle, comandResponse)
-        elif "PID curr q" in comandResponse:
-            comandResponse = comandResponse.replace("PID curr q|", "")
-            self.parsePIDFResponse(self.PIDCurrentQ, self.LPFCurrentQ, comandResponse)
-        elif "PID curr d" in comandResponse:
-            comandResponse = comandResponse.replace("PID curr d|", "")
-            self.parsePIDFResponse(self.PIDCurrentD, self.LPFCurrentD, comandResponse)
-        elif "Limits" in comandResponse:
-            comandResponse = comandResponse.replace("Limits|", "")
-            self.parseLimitsResponse(comandResponse)
-        elif "Motion" in comandResponse:
-            comandResponse = comandResponse.replace("Motion:", "")
-            self.parseMotionResponse(comandResponse)
-        elif "Torque" in comandResponse:
-            comandResponse = comandResponse.replace("Torque:", "")
-            self.parseTorqueResponse(comandResponse)
-        elif "Sensor" in comandResponse:
-            comandResponse = comandResponse.replace("Sensor |", "")
-            self.parseSensorResponse(comandResponse)
-        elif "Monitor" in comandResponse:
-            comandResponse = comandResponse.replace("Monitor |", "")
-            self.parseMonitorResponse(comandResponse)
-        elif "Status" in comandResponse:
-            self.deviceStatus = float(comandResponse.replace("Status:", ""))
-        elif "R phase" in comandResponse:
-            self.phaseResistance = float(comandResponse.replace("R phase:", ""))
-        elif "PWM Mod" in comandResponse:
-            comandResponse = comandResponse.replace("PWM Mod | ", "")
-            self.parsePWMModResponse(comandResponse)
+    def parseResponses(self, commandResponse):
+        if "PID vel" in commandResponse:
+            commandResponse = commandResponse.replace("PID vel|", "")
+            self.parsePIDFResponse(self.PIDVelocity, self.LPFVelocity, commandResponse)
+        elif "PID angle" in commandResponse:
+            commandResponse = commandResponse.replace("PID angle|", "")
+            self.parsePIDFResponse(self.PIDAngle, self.LPFAngle, commandResponse)
+        elif "PID curr q" in commandResponse:
+            commandResponse = commandResponse.replace("PID curr q|", "")
+            self.parsePIDFResponse(self.PIDCurrentQ, self.LPFCurrentQ, commandResponse)
+        elif "PID curr d" in commandResponse:
+            commandResponse = commandResponse.replace("PID curr d|", "")
+            self.parsePIDFResponse(self.PIDCurrentD, self.LPFCurrentD, commandResponse)
+        elif "Limits" in commandResponse:
+            commandResponse = commandResponse.replace("Limits|", "")
+            self.parseLimitsResponse(commandResponse)
+        elif "Motion" in commandResponse:
+            commandResponse = commandResponse.replace("Motion:", "")
+            self.parseMotionResponse(commandResponse)
+        elif "Torque" in commandResponse:
+            commandResponse = commandResponse.replace("Torque:", "")
+            self.parseTorqueResponse(commandResponse)
+        elif "Sensor" in commandResponse:
+            commandResponse = commandResponse.replace("Sensor |", "")
+            self.parseSensorResponse(commandResponse)
+        elif "Monitor" in commandResponse:
+            commandResponse = commandResponse.replace("Monitor |", "")
+            self.parseMonitorResponse(commandResponse)
+        elif "Status" in commandResponse:
+            self.deviceStatus = float(commandResponse.replace("Status:", ""))
+        elif "R phase" in commandResponse:
+            self.phaseResistance = float(commandResponse.replace("R phase:", ""))
+        elif "PWM Mod" in commandResponse:
+            commandResponse = commandResponse.replace("PWM Mod | ", "")
+            self.parsePWMModResponse(commandResponse)
 
-    def parseStateResponses(self, comandResponse):
-        if "Monitor" in comandResponse:
-            comandResponse = comandResponse.replace("Monitor |", "")
-            self.parseMonitorResponse(comandResponse)
+    def parseStateResponses(self, commandResponse):
+        if "Monitor" in commandResponse:
+            commandResponse = commandResponse.replace("Monitor |", "")
+            self.parseMonitorResponse(commandResponse)

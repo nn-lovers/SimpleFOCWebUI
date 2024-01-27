@@ -5,11 +5,12 @@ import atexit
 from threading import Event, Thread
 from time import sleep
 import traceback
-from src.gui_new.utils import LOG_SEVERITY
+from src.gui_new.utils import LOG_SEVERITY,DEFAULT_PARAMS
 from src.gui_new.simpleFOCSerialConnection import (
     SerialInterface,
     SimpleFOCSerialConnection,
 )
+from src.gui_new.simpleFOCDevice import SimpleFOCDevice
 
 
 class FlaskServerWithSocketIO:
@@ -41,17 +42,17 @@ class FlaskServerWithSocketIO:
             traceback.print_exc()
         self.broadcast(f"logging_{severity}_{log_name}", log_message)
 
-    def log_info(self, channel, log_message):
-        self.log(channel, log_message, severity=LOG_SEVERITY.INFO)
+    def log_info(self, channel, *log_messages):
+        self.log(channel, " ".join(list(map(lambda x:str(x),log_messages))), severity=LOG_SEVERITY.INFO)
 
-    def log_warning(self, channel, log_message):
-        self.log(channel, log_message, severity=LOG_SEVERITY.WARNING)
+    def log_warning(self, channel, *log_messages):
+        self.log(channel, " ".join(list(map(lambda x:str(x),log_messages))), severity=LOG_SEVERITY.WARNING)
 
-    def log_error(self, channel, log_message):
-        self.log(channel, log_message, severity=LOG_SEVERITY.ERROR)
+    def log_error(self, channel, *log_messages):
+        self.log(channel, " ".join(list(map(lambda x:str(x),log_messages))), severity=LOG_SEVERITY.ERROR)
 
-    def log_debug(self, channel, log_message):
-        self.log(channel, log_message, severity=LOG_SEVERITY.DEBUG)
+    def log_debug(self, channel, *log_messages):
+        self.log(channel, " ".join(list(map(lambda x:str(x),log_messages))), severity=LOG_SEVERITY.DEBUG)
 
     def start(self):
         self.socketio.run(self.app, host="0.0.0.0", debug=True)
@@ -89,7 +90,7 @@ def socketio_event_handler(requires_serial_connection=False):
             def outer_wrapper(cls,data):
                 def inner_wrapper(cls, port_name=None, **kwargs):
                     if port_name is None:
-                        cls.server.log_error(
+                        cls.server.log_warning(
                             "general",
                             "Requesting serial connection but port not specified."
                         )
@@ -100,10 +101,11 @@ def socketio_event_handler(requires_serial_connection=False):
                     if serial_connection is not None:
                         return func(cls,serial_connection, **kwargs)
                     else:
-                        cls.server.log_error(
+                        cls.server.log_warning(
                             "general",
                             "Requesting serial connection but serial connection not found!"
                         )
+                        return None
                 return inner_wrapper(cls,**data)
             return outer_wrapper
         else:
@@ -153,9 +155,49 @@ class DevicePage:
         self.server.socketio.on_event(
             "client_request_initiate_connection", self.initiate_client_connection
         )
+        self.server.socketio.on_event(
+            "client_request_change_parameter_var",
+            self.request_change_parameter_var
+        )
+        self.server.socketio.on_event(
+            "client_request_change_monitor_downsample",
+            self.request_change_monitor_downsample
+        )
+        self.server.socketio.on_event(
+            "client_request_serial_raw_input",
+            self.request_serial_raw_input()
+        )
 
     def serve_devices_page(self):
         self.server.serve_html("/devices", "devices.html")    
+
+    @socketio_event_handler(requires_serial_connection=True)
+    def request_change_monitor_downsample(self,
+        serial_connection: SimpleFOCSerialConnection, raw
+    ):
+        try:
+            serial_connection.sendRaw(raw)
+            self.server.log_info("serial_raw_input",raw)
+        except Exception:
+            self.server.log_error("serial_raw_input","Failed to send:",raw)
+
+    @socketio_event_handler(requires_serial_connection=True)
+    def request_change_monitor_downsample(self,
+        serial_connection: SimpleFOCSerialConnection, value
+    ):
+        serial_connection.simple_foc_device.sendMonitorDownsample(value)
+
+    @socketio_event_handler(requires_serial_connection=True)
+    def request_change_parameter_var(self,
+        serial_connection: SimpleFOCSerialConnection, parameter_var_name,value
+    ):
+        serial_connection.changeMotorParameterVariable(parameter_var_name,value)
+        self.server.socketio.emit(
+            "server_response_parameter_var_changed", {
+                "parameter_var_name":parameter_var_name,
+                "value":value
+            }
+        )
 
     @socketio_event_handler(requires_serial_connection=True)
     def request_change_monitoring_variables(
@@ -169,6 +211,10 @@ class DevicePage:
     @socketio_event_handler(requires_serial_connection=True)
     def pull_configuration(self, serial_connection: SimpleFOCSerialConnection):
         serial_connection.pullConfiguration()
+        self.server.socketio.emit(
+            "server_response_device_params_sync",
+            serial_connection.simple_foc_device.serialize_simple()
+        )
 
     @socketio_event_handler(requires_serial_connection=True)
     def set_device_status(
@@ -176,11 +222,12 @@ class DevicePage:
     ):
         serial_connection.sendDeviceStatus(device_status)
         self.server.socketio.emit("server_response_device_status_change", device_status)
+        self.server.log_debug("general","Device Status Changed.",device_status)
 
     @socketio_event_handler(requires_serial_connection=True)
     def change_target(self, serial_connection: SimpleFOCSerialConnection, target_value):
         serial_connection.sendTargetValue(target_value)
-        self.server.socketio.emit("server_response_target_change", target_value)
+        self.server.socketio.emit("server_response_target_change", target_value)        
 
     @socketio_event_handler(requires_serial_connection=True)
     def change_control_mode(
@@ -188,6 +235,7 @@ class DevicePage:
     ):
         serial_connection.sendControlType(control_mode)
         self.server.socketio.emit("server_response_control_mode_change", control_mode)
+        self.server.log_debug("general","Control Mode Changed.",control_mode)
 
     @socketio_event_handler(requires_serial_connection=True)
     def request_send_live_data(self, serial_connection:SimpleFOCSerialConnection,request_status:bool):
@@ -201,6 +249,7 @@ class DevicePage:
                 self.serial_live_data_sync.stop()
                 self.serial_live_data_sync = None        
         self.server.socketio.emit("server_response_live_data_change",request_status)
+        self.server.log_debug("general","Live data sending changed::Sending:",request_status)
 
     @socketio_event_handler()
     def initiate_client_connection(self):
@@ -210,13 +259,20 @@ class DevicePage:
         self.refresh_devices({})
         if self.connected_com is not None:
             connected_port_name = self.connected_com.port_name
+            monitor_variables = self.connected_com.simple_foc_device.monitorVariables
+            device_params = self.connected_com.simple_foc_device.serialize_simple()
         else:
             connected_port_name = None
+            monitor_variables = [False for _ in range(7)]
+            device_params = DEFAULT_PARAMS
 
         self.server.socketio.emit("server_response_initialization",{
-            "connected_port_name":connected_port_name
+            "connected_port_name":connected_port_name,
+            "live_data_syncing":self.serial_live_data_sync is not None,
+            "monitoring_ariables":monitor_variables,
+            "device_params":device_params
+
         })
-        # self.server.socketio.emit("server_response_monitoring_variables_changed",monitoring_variables)
     
     @socketio_event_handler()
     def refresh_devices(self):
@@ -228,21 +284,33 @@ class DevicePage:
 
     @socketio_event_handler()
     def connect_com(
-        self, port_name, serial_rate, serial_byte_size, serial_parity, stop_bits
+        self, port_name, command_id, serial_rate, serial_byte_size, serial_parity, stop_bits
     ):  
         if(self.connected_com is not None and port_name != self.connected_com.port_name):
             self.disconnect_com({"port_name":self.connected_com.port_name})
+
+        def device_state_update_callback(simple_foc_device:SimpleFOCDevice):            
+            self.server.socketio.emit(
+                "server_response_device_params_sync",
+                simple_foc_device.serialize_simple()
+            )
+            
         serial_connection = self.serial_interface.connect_to_serial(
-            port_name, serial_rate, serial_byte_size, serial_parity, stop_bits
+            port_name, command_id, serial_rate, serial_byte_size, serial_parity, stop_bits,
+            state_update_callback=device_state_update_callback
         )
         if serial_connection is not None:
             port_name = serial_connection.port_name
             self.connected_com = serial_connection
-            self.server.socketio.emit("server_response_device_connect", port_name)
+            self.server.socketio.emit("server_response_device_connect", {
+                "port_name": port_name,
+                "device_params":serial_connection.simple_foc_device.serialize_simple()
+            })
             self.server.log_info("device_page", f"{port_name} Connected.")
         else:
-            self.server.log_error("device_page", "Failed to connect to device!")
+            self.server.log_error("device_page", "Failed to connect to device!")        
 
+    
     @socketio_event_handler()
     def disconnect_com(self, port_name):        
         ret = self.serial_interface.disconnect_serial(port_name)                

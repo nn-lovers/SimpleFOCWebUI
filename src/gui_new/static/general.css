@@ -5,6 +5,12 @@ html{
     background-image: url("/static/media/dot-grid.webp");
     overflow-x: hidden;    
 }
+.hidden{
+    display:none !important;
+}
+.hidden2{
+    display:none !important;
+}
 #chart{
     background: #232526;  /* fallback for old browsers */
     background: -webkit-linear-gradient(to right, #414345, #232526);  /* Chrome 10-25, Safari 5.1-6 */
@@ -69,10 +75,59 @@ button svg{
  top:2px;
  left:10px;
 }
+.button4{
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+    background-color: transparent; border-radius: 6px;
+    border: 1px solid rgb(220, 220, 220);
+    display: inline-block; cursor: pointer;    
+    font-family: Arial;
+    font-size: 10px;
+    font-weight: bold;
+    width:25px;
+    height:25px;
+    text-decoration: none;
+    margin-left:1px;
+    margin-right:1px;
+}
+.button4 svg{
+    color: #495057;
+    margin-top:0px;
+    margin-left:-5px;
+}
+.button5{
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+    background-color: transparent; border-radius: 6px;
+    border: 1px solid rgb(220, 220, 220);
+    display: inline-block; cursor: pointer;
+    color: rgb(56, 56, 56);
+    font-family: Arial;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 6px 24px;    
+    text-decoration: none;
+    padding-left:30px !important;
+    
+}
+
 span{
     font-family: Arial, Helvetica, sans-serif !important;
     font-weight: 600;
     font-style: normal;
+}
+input[type=text]{
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+    background-color: transparent; border-radius: 6px;
+    border: 1px solid rgb(220, 220, 220);
+    display: inline-block; cursor: pointer;
+    color: rgb(56, 56, 56);
+    padding:5px;
+    font-family: Arial;
+    font-size: 10px;
+    font-weight: bold;
+    text-decoration: none;
+    background:white;
+    width:145px;
+    cursor:text;
 }
 input[type=number]{
     box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
@@ -87,7 +142,7 @@ input[type=number]{
     text-decoration: none;
     background:white;
     width:145px;
-    
+    cursor:text;
 }
 input:focus,
 select:focus,
@@ -110,6 +165,29 @@ select {
     text-decoration: none;
     background:white;
     width:145px;
+}
+.button_info{
+    width:145px !important;
+    color:#868e96;
+    background:white;
+    border: 1px solid #868e96;  
+}
+.button_info:hover{
+    color:white !important;
+    background-color: #868e96 !important;
+    border: 1px solid #868e96 !important; 
+    box-shadow: #868e96 0px 6px 15px 0px, #868e96 0px 0px 0px 1px;
+}
+.button_connected{
+    color:#20c997;
+    background:white;
+    border: 1px solid #20c997; 
+}
+.button_connected:hover{
+    color:white !important;
+    background-color: #20c997 !important;
+    border: 1px solid #20c997 !important; 
+    box-shadow: #20c997 0px 6px 15px 0px, #20c997 0px 0px 0px 1px;
 }
 .button_streaming{
     width:145px !important;
@@ -224,8 +302,10 @@ button{
     display:flex;
     flex-direction: row;
     justify-content:space-evenly;
+    
 }
 .column{
     display:flex;
     flex-direction: column;
 }
+
