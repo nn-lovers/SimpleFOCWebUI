@@ -1,0 +1,29 @@
+{
+    "motor_parameters": {
+        "motion_downsample": "0",
+        "velocity_P_gain": "0",
+        "velocity_I_gain": "0",
+        "velocity_D_gain": "0",
+        "velocity_output_ramp": "0",
+        "velocity_output_limit": "0",
+        "velocity_low_pass_filter": "0.0",
+        "position_P_gain": "0",
+        "position_output_ramp": "0",
+        "position_output_limit": "0",
+        "position_low_pass_filter": "0.0",
+        "curr_d_P_gain": "0",
+        "curr_d_output_ramp": "0",
+        "curr_d_output_limit": "0",
+        "curr_d_low_pass_filter": "0.0",
+        "curr_q_P_gain": "0",
+        "curr_q_output_ramp": "0",
+        "curr_q_output_limit": "0",
+        "curr_q_low_pass_filter": "0.0",
+        "velocity_limit": "50",
+        "voltage_limit": "10",
+        "current_limit": "1.5",
+        "phase_resistance": "8",
+        "modulation_type": "0",
+        "modulation_centered": "1"
+    }
+}

@@ -20,7 +20,7 @@ Adapted from *Simple**FOC**Studio*
 - Built with web based frontend
 
 <p align="center">
-  <img  src="./DOC/new_gif.gif">
+  <img  src="./DOC/screenshot.png">
 </p>
 
 ### Installation
