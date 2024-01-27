@@ -52,6 +52,21 @@ document.addEventListener("DOMContentLoaded", function () {
     target_value.addEventListener("mousedown", handle_slide);
     actual_value.addEventListener("mousedown", handle_slide);
     error_value.addEventListener("mousedown", handle_slide);
+
+    angle_slider.addEventListener("touchstart", handle_slide);
+    angle_slider2.addEventListener("touchstart", handle_slide);
+    handle.addEventListener("touchstart", handle_slide);
+    handle2.addEventListener("touchstart", handle_slide);
+    slider_cover.addEventListener("touchstart", handle_slide);
+    slider_cover2.addEventListener("touchstart", handle_slide);
+    
+    target_id.addEventListener("touchstart", handle_slide);
+    actual_id.addEventListener("touchstart", handle_slide);
+    error_id.addEventListener("touchstart", handle_slide);
+    target_value.addEventListener("touchstart", handle_slide);
+    actual_value.addEventListener("touchstart", handle_slide);
+    error_value.addEventListener("touchstart", handle_slide);
+  
     function angleToPercentage(angle){
       const minAngle = 0;
       const maxAngle = Math.PI * 2;
@@ -67,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let prev_percentage = 0;
     let end_stopped_left = false;
     let end_stopped_right = false;
-    document.addEventListener("mousemove", (event) =>{
+    function handle_move(event){
       throttle(()=>{
         if (isDragging) {
           const angle = getAngle(event);
@@ -75,15 +90,20 @@ document.addEventListener("DOMContentLoaded", function () {
           updateSliderValue(percentage);
         }
       },1)();
-    });    
-  
-    // Handle mouse up on the document
-    document.addEventListener("mouseup", function (event) {
+    }
+    function handle_cancel(event){
       if (isDragging) {
         handle.style.transition = "transform 0.3s";
         isDragging = false;
         handle.releasePointerCapture(event.pointerId);
       }
-    });
+    }
+    document.addEventListener("mousemove", handle_move);    
+    document.addEventListener("touchmove", handle_move);
+
+    document.addEventListener("touchend", handle_cancel);
+    document.addEventListener("touchcancel", handle_cancel);
+    // Handle mouse up on the document
+    document.addEventListener("mouseup", handle_cancel);
     zero_target();
   });

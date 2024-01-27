@@ -158,13 +158,12 @@ class SimpleFOCDevice:
         self._stopped = Event()
         def _t():
             while not self._stopped.is_set():
-                #self.pullAllConfiguration()
                 time.sleep(1)
                 continue
-                self.updateStates()
-                if state_update_callback is not None:
-                    state_update_callback(self)
-                time.sleep(1)
+                #self.updateStates()
+                #if state_update_callback is not None:
+                #    state_update_callback(self)
+                #time.sleep(3)
 
         self.update_states_thread = Thread(target=_t)
         self.update_states_thread.start()
@@ -213,6 +212,7 @@ class SimpleFOCDevice:
             "curr_q_output_ramp":self.PIDCurrentQ.outputRamp,
             "curr_q_output_limit":self.PIDCurrentQ.outputLimit,
         }
+    
 
     def toJSON(self):
         valuesToSave = {
@@ -357,6 +357,10 @@ class SimpleFOCDevice:
             self.target = targetvalue
         return self.setCommand("", self.target)
 
+    def sendSensorZeroOffsetFromCurrentAngle(self):     
+        #TODO: ???
+        return self.sendSensorZeroOffset(float(self.state_variables["angle"]))
+
     def sendSensorZeroOffset(self, targetvalue):
         if targetvalue != "":
             self.sensorZeroOffset = targetvalue
@@ -403,7 +407,7 @@ class SimpleFOCDevice:
         else:
             self.getCommand("MS")
             return True, ""
-
+    
     def updateStates(self):
         if self.isConnected:
             self.getCommand("MG0")

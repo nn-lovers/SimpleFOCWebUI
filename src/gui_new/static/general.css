@@ -237,7 +237,14 @@ select {
     border: 1px solid #f03e3e !important; 
     box-shadow: #f03e3e 0px 6px 15px 0px, #f03e3e 0px 0px 0px 1px;
 }
-
+.button-disabled{
+    color:#ced4da;
+}
+.button-disabled:hover{
+    color:#ced4da;
+    background:inherit;
+    box-shadow: inherit;
+}
 button svg{
     width:20px;
 }

@@ -66,6 +66,11 @@
     padding-left:11px;    
 }
 #chart_and_chart_controls{
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     margin-top:5px;
     display:flex;
     flex-direction: row;
@@ -576,4 +581,24 @@
     height:80%;
     border:#868e96 solid 1px;
     border-radius: 10px;
+    overflow: scroll;
+}
+
+/*File save et al*/
+.configuration_save_modal{
+ -webkit-user-select: none;
+ -webkit-touch-callout: none;
+ -moz-user-select: none;
+ -ms-user-select: none;
+ user-select: none;   
+}
+#name_for_save{
+    margin-top:-20px;
+    width:100% !important;
+    margin-bottom:20px;
+}
+
+/*Hosting IP Address Label*/
+#hosting_ip_address{
+    margin-top:3px;
 }

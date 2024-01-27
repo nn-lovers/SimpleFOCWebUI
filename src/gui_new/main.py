@@ -1,11 +1,14 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO
+import json
+import os
 import uuid
 import atexit
 from threading import Event, Thread
 from time import sleep
 import traceback
-from src.gui_new.utils import LOG_SEVERITY,DEFAULT_PARAMS
+import socket
+from src.gui_new.utils import LOG_SEVERITY,DEFAULT_PARAMS,save_dict_to_JSON_file,ensure_dir
 from src.gui_new.simpleFOCSerialConnection import (
     SerialInterface,
     SimpleFOCSerialConnection,
@@ -54,8 +57,11 @@ class FlaskServerWithSocketIO:
     def log_debug(self, channel, *log_messages):
         self.log(channel, " ".join(list(map(lambda x:str(x),log_messages))), severity=LOG_SEVERITY.DEBUG)
 
-    def start(self):
-        self.socketio.run(self.app, host="0.0.0.0", debug=True)
+    def start(self,port,use_https):
+        if use_https:
+            self.socketio.run(self.app, host="0.0.0.0", port=port, debug=True,ssl_context='adhoc')
+        else:
+            self.socketio.run(self.app, host="0.0.0.0", port=port, debug=True)
 
 
 class DevicePageSyncLiveData:
@@ -117,14 +123,18 @@ def socketio_event_handler(requires_serial_connection=False):
 class DevicePage:
 
     def __init__(
-        self, server: FlaskServerWithSocketIO, serial_interface: SerialInterface
+        self, server: FlaskServerWithSocketIO, serial_interface: SerialInterface,
+        default_save_path :str,
+        hosting_port : int,
+        use_https: bool
     ):
         self.server = server
         self.connected_com = None
         self.serial_live_data_sync = None
-        self.serial_interface = serial_interface
-
-        self.serve_devices_page()
+        self.serial_interface = serial_interface        
+        self.default_save_path = default_save_path
+        self.hosting_port = hosting_port
+        self.use_https = use_https
 
         self.server.socketio.on_event(
             "client_request_device_refresh", self.refresh_devices
@@ -165,21 +175,34 @@ class DevicePage:
         )
         self.server.socketio.on_event(
             "client_request_serial_raw_input",
-            self.request_serial_raw_input()
+            self.request_serial_raw_input
+        )
+        self.server.socketio.on_event(
+            "client_request_control_torque_mode_change",
+            self.change_torque_mode
+        )
+        self.server.socketio.on_event(
+            "client_request_zero_sensor_offset",
+            self.zero_sensor_offset
+        )
+        self.server.socketio.on_event(
+            "client_request_save_configurations_to_file",
+            self.save_configuration
+        )
+        self.server.socketio.on_event(
+            "client_request_push_configurations",
+            self.push_configuration
         )
 
-    def serve_devices_page(self):
-        self.server.serve_html("/devices", "devices.html")    
-
     @socketio_event_handler(requires_serial_connection=True)
-    def request_change_monitor_downsample(self,
+    def request_serial_raw_input(self,
         serial_connection: SimpleFOCSerialConnection, raw
     ):
         try:
             serial_connection.sendRaw(raw)
-            self.server.log_info("serial_raw_input",raw)
+            self.server.log_info("serial_raw_input",raw,"<br>")
         except Exception:
-            self.server.log_error("serial_raw_input","Failed to send:",raw)
+            self.server.log_error("serial_raw_input","Failed to send:",raw,"<br>")
 
     @socketio_event_handler(requires_serial_connection=True)
     def request_change_monitor_downsample(self,
@@ -215,7 +238,30 @@ class DevicePage:
             "server_response_device_params_sync",
             serial_connection.simple_foc_device.serialize_simple()
         )
+        self.server.socketio.emit(
+            "server_response_pull_configuration",
+            {}
+        )
 
+    @socketio_event_handler(requires_serial_connection=True)
+    def push_configuration(self, serial_connection: SimpleFOCSerialConnection,config_data):
+        for key,value in config_data["motor_parameters"].items():
+            serial_connection.changeMotorParameterVariable(key,value)
+        self.server.socketio.emit(
+            "server_response_push_configuration",
+            {}
+        )
+
+    @socketio_event_handler(requires_serial_connection=False)
+    def save_configuration(self, config_data,save_name):
+        ensure_dir(self.default_save_path)
+        file_path = os.path.join(self.default_save_path,
+        save_name+".json"
+        )
+        save_dict_to_JSON_file(file_path,json.dumps(config_data,indent=4))
+        self.server.socketio.emit("server_response_configuration_saved", save_name)
+        self.server.log_debug("general","configuration saved.")
+        
     @socketio_event_handler(requires_serial_connection=True)
     def set_device_status(
         self, serial_connection: SimpleFOCSerialConnection, device_status
@@ -228,6 +274,19 @@ class DevicePage:
     def change_target(self, serial_connection: SimpleFOCSerialConnection, target_value):
         serial_connection.sendTargetValue(target_value)
         self.server.socketio.emit("server_response_target_change", target_value)        
+    
+    @socketio_event_handler(requires_serial_connection=True)
+    def zero_sensor_offset(self, serial_connection: SimpleFOCSerialConnection):
+        serial_connection.sendSensorZeroOffsetFromCurrentAngle()
+        self.server.socketio.emit("server_response_sensor_zero_offset")   
+
+    @socketio_event_handler(requires_serial_connection=True)
+    def change_torque_mode(self,
+        serial_connection: SimpleFOCSerialConnection, control_torque_mode
+        ):
+        serial_connection.sendControlTorqueType(control_torque_mode)
+        self.server.socketio.emit("server_response_control_torque_mode_change", control_torque_mode)
+        self.server.log_debug("general","Control Torque Mode Changed.",control_torque_mode)
 
     @socketio_event_handler(requires_serial_connection=True)
     def change_control_mode(
@@ -261,17 +320,30 @@ class DevicePage:
             connected_port_name = self.connected_com.port_name
             monitor_variables = self.connected_com.simple_foc_device.monitorVariables
             device_params = self.connected_com.simple_foc_device.serialize_simple()
+            control_loop_mode = self.connected_com.simple_foc_device.controlType
+            torque_mode = self.connected_com.simple_foc_device.torqueType
+            current_target = self.connected_com.simple_foc_device.target
         else:
             connected_port_name = None
             monitor_variables = [False for _ in range(7)]
             device_params = DEFAULT_PARAMS
+            control_loop_mode = 0
+            torque_mode = 0
+            current_target = 0
 
+        hostname = socket.gethostname()
+        hosting_ip_address = socket.gethostbyname(hostname)
+        
         self.server.socketio.emit("server_response_initialization",{
             "connected_port_name":connected_port_name,
             "live_data_syncing":self.serial_live_data_sync is not None,
             "monitoring_ariables":monitor_variables,
-            "device_params":device_params
-
+            "device_params":device_params,
+            "control_loop_mode":control_loop_mode,
+            "torque_mode":torque_mode,
+            "current_target":current_target,
+            "default_save_path":self.default_save_path,
+            "hosting_ip_address": f"{'https' if self.use_https else 'http' }://{hosting_ip_address}:{self.hosting_port}"
         })
     
     @socketio_event_handler()
@@ -315,6 +387,9 @@ class DevicePage:
     def disconnect_com(self, port_name):        
         ret = self.serial_interface.disconnect_serial(port_name)                
         self.connected_com = None
+        if self.serial_live_data_sync is not None:
+            self.serial_live_data_sync.stop()
+            self.serial_live_data_sync = None
         self.server.socketio.emit("server_response_device_disconnect", port_name)
         self.server.log_info("device_page", f"{port_name} Disconnected.")
         self.server.log_info("device_page","UISYSCMD::CLS")
@@ -325,11 +400,11 @@ class DevicePage:
         self.serial_interface.disconnect_all_serials()
 
 
-def run_webui():
+def run_webui(default_save_path,port,use_https):
     server = FlaskServerWithSocketIO()
     serial_interface = SerialInterface(server=server)
 
-    device_page = DevicePage(server=server, serial_interface=serial_interface)
+    device_page = DevicePage(server=server, serial_interface=serial_interface,default_save_path=default_save_path,hosting_port=port,use_https=use_https)
 
     def on_server_stop():
         device_page.stop()
@@ -337,4 +412,4 @@ def run_webui():
     # Register the callback function to be executed on server stop
     atexit.register(on_server_stop)
 
-    server.start()
+    server.start(port,use_https)

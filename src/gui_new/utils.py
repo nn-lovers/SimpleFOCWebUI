@@ -1,8 +1,19 @@
 import serial
+import os
+import json
+
 
 DEFAULT_PARAMS = {
     
 }
+
+def save_dict_to_JSON_file(file_path,file_content):
+    with open(file_path,"w") as file:
+        file.write(file_content)
+
+def ensure_dir(path):
+    if not os.path.isdir(path):
+        os.makedirs(path)
 
 class LOG_SEVERITY:
     INFO = "info"

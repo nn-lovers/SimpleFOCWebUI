@@ -1,29 +1,655 @@
-<link rel="stylesheet" href="{{ url_for('static',filename='main.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/general.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/devices/devices.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/components/slider.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/components/checkbox.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/components/loader.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/dist/uplot.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/dist/awesome_notifications/style.css')}}">
+<link rel="stylesheet" href="{{ url_for('static',filename='/dist/highlight.css')}}">
+
 <body>
 
-<h1>SimpleFOC UI</h1>
+  
+<!--Top Bar Begins-->
+<div class="topbar">
+  <!--Left Side Components-->
+  <span id="main_logo" class="simple" onclick="toggle_topbar_menu();">
+   <img class="simplefoc_logo" src="{{ url_for('static',filename='/media/logo.jpg')}}">
+    Simple<span class="foc">FOC</span> WebUI
+  </span>
 
-<div id="coms">
-    <!--Here show the coms-->
+  <!--Middle Components-->
+  <div id="topbar_dropdown" class="hidden">
+    <button class="button1"  onclick="configuration_file_select_open()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+      Load Configuration</button>
+    <input type="file" id="configuration_file_select" hidden />
+    <button class="button1" onclick="open_save_configuration_modal();">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+      Save Configuration</button>    
+    <button class="button1" onclick="push_configuration()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      Push Configuration</button>
+    <button class="button1" onclick="pull_configuration()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Pull Configuration</button>
+    <button class="button1" style="border-radius: 0 0 10px 10px !important;" onclick="open_generate_code_modal();">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-code"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+      Generate Code</button>
+  </div>
+ <label id="hosting_ip_address"></label>
+    <!--Right Side Components-->
+    <div id="topbar_right">
+      <button class="button2" onclick="toggle_comms_settings();" style="position:relative">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Settings              
+      </button>
+      <div id="comms_configure" class="hidden">
+        Command ID <input id="commandIDInput" type="text" value="M">
+        Serial Rate <input id="serialRateInput" type="number" value="115200">        
+        Serial Byte Size <select id="byteSizeSelect" name="byteSize">
+            <option value="8">8</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+          </select>
+        Serial Parity  <select id="paritySelect" name="parity">
+            <option value="None">None</option>
+            <option value="Even">Even</option>
+            <option value="Odd">Odd</option>
+            <option value="Mark">Mark</option>
+            <option value="Space">Space</option>
+          </select>
+        Stop Bits  <select id="stopBitsSelect" name="stopBits">
+            <option value="1">1</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2</option>
+          </select>
+      </div>
+    
+    <button id='connection_button' class="button2"  onclick="toggle_device_connect_settings();"  style="position:relative">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-stop-circle"><circle cx="12" cy="12" r="10"></circle><rect x="9" y="9" width="6" height="6"></rect></svg>
+      Connect
+  </button>
+  <div id="device_connect" class="hidden">
+        <button class="button1" onclick="refresh_coms();">Refresh</button>
+        <!--Comms configure-->          
+        Devices:
+        <div id="coms">
+            <!--Here show the coms-->    
+            No Devices Found...
+        </div>  
+      </div>
+   
+    <!--Right Side End-->
+    </div>
 
 </div>
 
+<div id="chart_and_chart_controls">
+  <div id="chart_controls">  
+    <h1>Monitor Data</h1>
+<div id="chart_control_tickboxes">  
+  <div class="monitor_checkbox" style="background:#495057; color:white;" onclick="toggle_monitoring_variable('target')"> 
+    Target
+      <label class="b-contain">
+        <input id="target_monitor_checkbox" type="checkbox">
+        <div class="b-input b-input1"></div>
+      </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#ffe066" onclick="toggle_monitoring_variable('volt_q')">
+    Volt_Q 
+    <label class="b-contain">
+      <input id="volt_q_monitor_checkbox" type="checkbox">
+      <div class="b-input b-input2"></div>
+    </label>    
+  </div>
+  <div class="monitor_checkbox" style="background:#b197fc" onclick="toggle_monitoring_variable('volt_d')">
+    Volt_D 
+    <label class="b-contain">
+      <input id="volt_d_monitor_checkbox" type="checkbox">
+      <div class="b-input b-input3"></div>
+    </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#91a7ff" onclick="toggle_monitoring_variable('curr_q')">
+    Curr_Q 
+    <label class="b-contain">
+      <input id="curr_q_monitor_checkbox" type="checkbox">
+      <div class="b-input b-input4"></div>
+    </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#74c0fc" onclick="toggle_monitoring_variable('curr_d')">
+    Curr_D 
+    <label class="b-contain">
+      <input id="curr_d_monitor_checkbox" type="checkbox">
+      <div class="b-input b-input5"></div>
+    </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#63e6be" onclick="toggle_monitoring_variable('velocity')">
+    Velocity 
+    <label class="b-contain">
+      <input id="velocity_monitor_checkbox" type="checkbox">
+      <div class="b-input b-input6"></div>
+    </label>    
+  </div>
+  <div class="monitor_checkbox" style="background:#ffa94d" onclick="toggle_monitoring_variable('angle')">
+    Angle
+    <label class="b-contain">
+      <input id="angle_monitor_checkbox" type="checkbox">
+      <div class="b-input b-input7"></div>
+    </label>
+  </div>
+  <div class="monitor_checkbox" style="background:#ff6b6b; opacity: 0.6;">
+    Temp
+    <label class="b-contain">
+      <input id="angle_monitor_checkbox" type="checkbox" disabled>
+      <div class="b-input b-input8"></div>
+    </label>
+  </div>  
+</div>
 
-<div id="controls">
-<button onclick="test();">Add State</button>
+<div class="monitor_input">
+  <span>Downsample</span>
+  <input id="monitor_downsample" oninput="change_monitor_downsample(parseFloat(this.value))" value="100" type="number">
+</div> 
+<div class="monitor_input">
+  <span>Max Plot Amount</span>
+  <input id="max_plot_amount" oninput="change_maxplot_amount(parseFloat(this.value))" value="1000" type="number">
+</div> 
+
+<!--Send Live Data Toggle-->
+<div id="send_live_data_toggle">
+<button  class="button1 button_streaming" onclick="request_toggle_live_data();">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+  Start Live Data</button>
+</div>
+<div id="graph_controls">
+  <button  class="button1 button_info" onclick="clear_live_data_plot();">
+    <svg style="margin-left:3px" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-refresh-cw"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+  Clear Graph
+  </button>
+</div>
+
+</div>
+  <!--Main Content Begins-->
+  <div id="chart">
+
+  </div>
+
+  
+</div>
+
+<div class="bottom_section">
+  <!---Bottom Section Left-->
+  <div class="bottom_section_left">
+    <div class="tab_container">
+      <label id="tab1" onclick="switch_tab('controls_panel')" class="tab tab_active tab-long tab1">Motor Controls</label>
+      <label id="tab2" onclick="switch_tab('parameters_panel')" class="tab tab-long tab2">Parameters Tuning</label>
+      <label id="tab3" onclick="switch_tab('terminal_panel')" class="tab tab-long tab3">Serial Terminal</label>
+      </div>
+
+      <div class="section_container">
+        <div id="mask_panel">
+          Not Connected.<br> 
+    
+        </div>
+        <!--Controls Panel-->
+        <div id="controls_panel">
+          <div id="controls_panel_left">
+          <div id="control_type">
+            <div id="control_mode_select">
+                <div id="control_loop_mode_select_container">
+                  <div class="column">
+                Control Loop Mode
+                <select id="control_loop_mode_select" name="control_loop_mode" onchange="set_control_mode(this.value)">
+                  <option value="0">Torque</option>
+                  <option value="1">Velocity</option>
+                  <option value="2">Angle</option>
+                  <option value="3">Velocity Open Loop</option>
+                  <option value="4">Angle Open Loop</option>
+                </select>
+              </div>
+                <!--<button id="control_mode_select_0" class="control_mode_select_button" onclick="set_control_mode(0)">Torque</button>
+                <button id="control_mode_select_1" class="control_mode_select_button" onclick="set_control_mode(1)">Velocity</button>
+                <button id="control_mode_select_2" class="control_mode_select_button" onclick="set_control_mode(2)">Angle</button>
+                <button id="control_mode_select_3" class="control_mode_select_button" onclick="set_control_mode(3)">Velocity Open Loop</button>
+                <button id="control_mode_select_4" class="control_mode_select_button" onclick="set_control_mode(4)">Angle Open Loop</button>-->
+                </div>                
+                <div id="torque_mode_select_container" style="margin-left:37px;">
+                  <div class="column">
+                Torque Mode
+                <select id="control_loop_torque_mode_select" name="control_loop_torque_mode" onchange="set_control_torque_mode(this.value)">
+                  <option value="0">Voltage</option>
+                  <option value="1">DC Current</option>
+                  <option value="2">FOC Current</option>
+                </select>
+              </div>
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div id="control_commands">
+            <div class="small_commands">
+            <button class="button3 button-disabled" onclick="//zero_sensor_offset();" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-radio"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
+              Zero Sensor
+            </button>
+ 
+            <button style="z-index: 1001" class="button3" onclick="zero_target()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+              Zero Target</button>            
+            </div>
+            <!--Enable/Disable Motor-->            
+            <div  style="z-index: 1001" id="enable_motor_toggle">
+              <div class="lds-dual-ring"></div>  
+            </div>
+          </div>
+          <div id="control_horizontal_sliders">
+            <div class="row">
+            <div class="minmax column">
+              Target Min / Max:      
+              <input type="number" id="target_minmax_input" oninput="update_target_minmax_displays();">
+            </div>
+            <div class="jogging_controls_column">            
+            <button class="button4" onclick="jogging_control(-0.5)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-left"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+            </button>
+            <button class="button4" onclick="jogging_control(-0.25)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <input type="number" id="target_value_input">
+            <button class="button4"  onclick="jogging_control(0.25)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <button class="button4" onclick="jogging_control(0.5)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-right"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+            </button>
+          </div>
+            </div>
+            <input id="horizontal_slider" type="range" value="0" min="-1" max="1" step="0.01" >
+            <div id="horizontal_slider_indicator">
+              <hr id="hr1">
+              <hr id="hr2">
+              <hr id="hr3">
+              <hr id="hr4">
+              <hr id="hr5">
+              <hr id="hr6">
+              <hr id="hr7">
+              <hr id="hr8">
+              <hr id="hr9">
+            </div>
+            <div id="horizontal_slider_labels">
+              <label id="horizontal_slider_label_1">-4</label>
+              <label id="horizontal_slider_label_2">-3</label>
+              <label id="horizontal_slider_label_3">-2</label>
+              <label id="horizontal_slider_label_4">-1</label>
+              <label id="horizontal_slider_label_5">0</label>
+              <label id="horizontal_slider_label_6">1</label>
+              <label id="horizontal_slider_label_7">2</label>
+              <label id="horizontal_slider_label_8">3</label>
+              <label id="horizontal_slider_label_9">4</label>
+            </div>
+          </div>
+          </div>
+          
+          <div class="control_sliders">            
+            <div class="slider-container">              
+              <div id="slider-indicator-dotted-line">
+              </div>
+   
+              <div class="slider-wrapper">
+                <div id="angle_slider" class="slider">
+                  <div id="handle" class="handle"></div>
+                  <div id="slider_cover" class="slider_cover"></div>                  
+                </div>
+              </div>
+              <div class="slider-wrapper2">
+                <div id="angle_slider2" class="slider2">
+                  <div id="handle2" class="handle2"></div>
+                  <div id="slider_cover2" class="slider_cover2"></div>    
+                </div>
+              </div>
+              <span class="slider-target-value"> 
+                <label id="slider-target-id">Target</label>
+                <label id="target-value">0</labelid>
+                </span>
+              <span class="slider-actual-value">
+                <label id="slider-actual-id">Actual</label>
+                <label id="actual-value">0</labelid>
+              </span>
+              <span class="slider-error-value">
+                <label id="slider-error-id">Error</label>
+                <label id="error-value">0</labelid>
+              </span>
+            </div>            
+          </div>
+      </div>
+      <!--Controls Panel End-->
+
+      <!--Parameters Panel-->
+      <div id="parameters_panel" class="hidden">
+
+        <h3>General Device Settings</h3>
+        <div id="general_device_settings">
+          <div class="row" style="margin-top:-7px;">        
+        <div class="column">
+          
+          Phase Resistance<input 
+          id="phase_resistance"
+          oninput="change_parameter_var('phase_resistance',this.value)"
+          type="number" value="3.2"></div>
+        <div class="column" 
+        >Current Limit<input 
+        id="current_limit"
+        oninput="change_parameter_var('current_limit',this.value)"
+        type="number" value="0.2"></div>
+        <div class="column"
+        >Velocity Limit<input 
+        id="velocity_limit"
+        oninput="change_parameter_var('velocity_limit',this.value)"
+        type="number" value="110.0"></div>
+        <div class="column"
+        >Voltage Limit<input 
+        id="voltage_limit"
+        oninput="change_parameter_var('voltage_limit',this.value)"
+        type="number" value="12.1"></div>
+      </div>
+      <div class="row">
+        <div class="column" >
+          Motion Downsample<input
+          id="motion_downsample"
+          oninput="change_parameter_var('motion_downsample',this.value)"
+          type="number" value="0.0"></div>
+        <div class="column">
+          Modulation Type: <select 
+          id="modulation_type"
+          oninput="change_parameter_var('modulation_type',this.value)"
+           value="1" name="modultation_type">
+            <option value="0">Sine PWM</option>
+            <option value="1">Space Vector PWM</option>
+            <option value="2">TRAPEZOIDAL_120</option>
+            <option value="3">TRAPEZOIDAL_150</option>
+          </select>
+        </div>
+        <div class="column"
+        >Modulation Centered<input 
+        id="modulation_centered"
+        oninput="change_parameter_var('modulation_centered',this.value)"
+        type="number" value="0.0"></div>
+      </div>
+      
+      </div>
+
+      <h3 style="margin-top:15px">PID Controller configuration</h3>
+        <div id="pid_controller_settings">
+          Select PID:
+          <select 
+          oninput="change_pid_type(this.value)"
+          id="pid_settings_select" name="pid_settings">
+            <option value="position">Position</option>
+            <option value="velocity">Velocity</option>
+            <option value="curr_d">Current_D</option>
+            <option value="curr_q">Current_Q</option>
+          </select>
+          <br>
+
+          <!--Position-->
+          <div id="pid_position">
+          <div class="row">
+            <div class="column">Proportional gain
+              <input 
+              id="position_P_gain"
+              oninput="change_parameter_var('position_P_gain',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Integral gain<input
+              id="position_I_gain"
+              oninput="change_parameter_var('position_I_gain',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Derivative gain <input
+              id="position_D_gain"
+              oninput="change_parameter_var('position_D_gain',this.value)"
+              type="number" value="0.0"></div>            
+          </div>
+          <div class="row">
+            <div class="column">Output ramp<input
+              id="position_output_ramp"
+              oninput="change_parameter_var('position_output_ramp',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Output limit<input
+              id="position_output_limit"
+              oninput="change_parameter_var('position_output_limit',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Low pass filter<input
+              id="position_low_pass_filter"
+              oninput="change_parameter_var('position_low_pass_filter',this.value)"
+              type="number" value="0.0"></div>
+          </div>
+        </div>
+        <!--Velocity-->
+        <div id="pid_velocity" class="hidden">
+          <div class="row">
+            <div class="column">Proportional gain
+              <input 
+              id="velocity_P_gain"
+              oninput="change_parameter_var('velocity_P_gain',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Integral gain<input
+              id="velocity_I_gain"
+              oninput="change_parameter_var('velocity_I_gain',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Derivative gain <input
+              id="velocity_D_gain"
+              oninput="change_parameter_var('velocity_D_gain',this.value)"
+              type="number" value="0.0"></div>            
+          </div>
+          <div class="row">
+            <div class="column">Output ramp<input
+              id="velocity_output_ramp"
+              oninput="change_parameter_var('velocity_output_ramp',this.value)"
+              type="number" value="0.0"></div>
+              <div class="column">Output limit<input
+                id="velocity_output_limit"
+                oninput="change_parameter_var('velocity_output_limit',this.value)"
+                type="number" value="0.0"></div>
+            <div class="column">Low pass filter<input
+              id="velocity_low_pass_filter"
+              oninput="change_parameter_var('velocity_low_pass_filter',this.value)"
+              type="number" value="0.0"></div>
+          </div>
+        </div>
+        <!--Current_D-->
+        <div id="pid_curr_d" class="hidden">
+          <div class="row">
+            <div class="column">Proportional gain
+              <input 
+              id="curr_d_P_gain"
+              oninput="change_parameter_var('curr_d_P_gain',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Integral gain<input
+              id="curr_d_I_gain"
+              oninput="change_parameter_var('curr_d_I_gain',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Derivative gain <input
+              id="curr_d_D_gain"
+              oninput="change_parameter_var('curr_d_D_gain',this.value)"
+              type="number" value="0.0"></div>            
+          </div>
+          <div class="row">
+            <div class="column">Output ramp<input
+              id="curr_d_output_ramp"
+              oninput="change_parameter_var('curr_d_output_ramp',this.value)"
+              type="number" value="0.0"></div>
+              <div class="column">Output limit<input
+                id="curr_d_output_limit"
+                oninput="change_parameter_var('curr_d_output_limit',this.value)"
+                type="number" value="0.0"></div>
+            <div class="column">Low pass filter<input
+              id="curr_d_low_pass_filter"
+              oninput="change_parameter_var('curr_d_low_pass_filter',this.value)"
+              type="number" value="0.0"></div>
+          </div>
+        </div>
+        <!--Current_Q-->
+        <div id="pid_curr_q" class="hidden">
+          <div class="row">
+            <div class="column">Proportional gain
+              <input 
+              id="curr_q_P_gain"
+              oninput="change_parameter_var('curr_q_P_gain',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Integral gain<input
+              id="curr_q_I_gain"
+              oninput="change_parameter_var('curr_q_I_gain',this.value)"
+              type="number" value="0.0"></div>
+            <div class="column">Derivative gain <input
+              id="curr_q_D_gain"
+              oninput="change_parameter_var('curr_q_D_gain',this.value)"
+              type="number" value="0.0"></div>            
+          </div>
+          <div class="row">
+            <div class="column">Output ramp<input
+              id="curr_q_output_ramp"
+              oninput="change_parameter_var('curr_q_output_ramp',this.value)"
+              type="number" value="0.0"></div>
+              <div class="column">Output limit<input
+                id="curr_q_output_limit"
+                oninput="change_parameter_var('curr_q_output_limit',this.value)"
+                type="number" value="0.0"></div>
+            <div class="column">Low pass filter<input
+              id="curr_q_low_pass_filter"
+              oninput="change_parameter_var('curr_q_low_pass_filter',this.value)"
+              type="number" value="0.0"></div>
+          </div>
+        </div>
+
+      </div>
+
+      </div>
+      <!--Parameters Panel End-->
+
+      <!--Terminal Panel-->
+      <div id="terminal_panel" class="hidden">
+        <div id="terminal_console_messages" class="terminal_console">
+
+        </div>
+        <div>
+          <input id="terminal_input" type="text" placeholder="Type Here:" onkeydown="handle_terminal_input(event);">
+          <button class="button1" id="terminal_input_send_button" onclick="send_serial_input()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            Send
+          </button>
+        </div>
+      </div>
+      <!--Terminal Panel End-->
+      
+      </div>
+  </div>
+  <!---Bottom Section End-->
 
 
+  <!---Bottom Section Right-->
+  <div class="bottom_section_right">
+    <!--Logs-->
+    <div class="log_controls_container">
+    <label class="log_control_item"    
+    >General
+      <label class="c-contain">
+        <input id="log_control_page_logs_checkbox" 
+        onclick="toggle_log_control('page_logs',false)"
+        type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item"         
+    >Console
+      <label class="c-contain">
+        <input id="log_control_console_logs_checkbox" 
+        onclick="toggle_log_control('console_logs',false)"
+        type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item"         
+    >
+      Info
+      <label class="c-contain">
+        <input id="log_control_info_checkbox" 
+        onclick="toggle_log_severity_control('info',false)"
+        type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item"         
+    >
+      Warning
+      <label class="c-contain">
+        <input id="log_control_warning_checkbox"
+        onclick="toggle_log_severity_control('warning',false)"
+        type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item"        
+    >Error
+      <label class="c-contain">
+        <input id="log_control_error_checkbox" 
+        onclick="toggle_log_severity_control('error',false)"
+        type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    <label class="log_control_item"        
+    >Debug
+      <label class="c-contain">
+        <input id="log_control_debug_checkbox"
+        onclick="toggle_log_severity_control('debug',false)"
+        type="checkbox">
+        <div class="c-input"></div>
+      </label>
+    </label>
+    </div>
+
+    <div class="log_container">
+      <!---->
+      <div id="logs_container" class="log_box">
+      
+      <div id="logs_message_box" class="log_messages">
+      
+      </div>
+      <button id='clear_logs_button' class="button1 button_info clear_logs_button" onclick="clear_logs('logs_message_box');">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+        Clear Logs
+      </button>
+      </div>
+
+
+  </div>
+  
+  <!---Bottom Section End-->
+
+</div>
 </div>
 </body>
+<div id="loading_bar">
+  <div class="loading_container">    
+  <span id="main_logo" class="simple">
+    <img class="simplefoc_logo" src="{{ url_for('static',filename='/media/logo.jpg')}}">
+     Simple<span class="foc">FOC</span> WebUI
+   </span>  
+   <div class="row">
+   <div class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  </div>
+    
+</div>
+</div>
 
-<script src="{{ url_for('static', filename='socketio.js')}}"></script>
-<script type="text/javascript" charset="utf-8">
-    var socket = io();
-    socket.on('connect', function() {
-        socket.emit('my event', {data: 'I\'m connected!'});
-    });
-    function test(){
-        socket.emit("test","ashdiah");
-    }
-</script>
-<script src="{{ url_for('static', filename='main.js')}}"></script>
+<script src="{{ url_for('static', filename='general.js')}}"></script>
+<script src="{{ url_for('static', filename='dist/index.var.js')}}"></script>
+<script src="{{ url_for('static', filename='dist/socketio.js')}}"></script>
+<script src="{{ url_for('static', filename='dist/uplot.js')}}"></script>
+<script src="{{ url_for('static', filename='dist/highlight.js')}}"></script>
+<script src="{{ url_for('static', filename='dist/awesome_notifications/index.var.js')}}"></script>
+<script src="{{ url_for('static', filename='components/makechart.js')}}"></script>
+<script src="{{ url_for('static', filename='components/slider.js')}}"></script>
+<script src="{{ url_for('static', filename='devices/devices.js')}}"></script>
+

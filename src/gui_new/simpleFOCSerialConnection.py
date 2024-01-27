@@ -93,7 +93,7 @@ class SimpleFOCSerialConnection:
             "curr_q":self.simple_foc_device.LPFCurrentQ
         }
     def sendRaw(self,raw):
-        self.serial_connection.write(f"{raw}\n".encode("utf-8"))
+        self.serial_connection.serial_comm.write(f"{raw}\n".encode("utf-8"))
         
     def is_PID_parameter(self,parameter_var_name):
         for val in self.PID_param_setters:
@@ -131,7 +131,11 @@ class SimpleFOCSerialConnection:
     @simplefoc_device_command()
     def sendControlType(self, control_type):
         return self.simple_foc_device.sendControlType(control_type)
-
+    
+    @simplefoc_device_command()
+    def sendControlTorqueType(self, control_torque_mode):
+        return self.simple_foc_device.sendTorqueType(control_torque_mode)
+        
     @simplefoc_device_command()
     def sendTargetValue(self, target_value):
         return self.simple_foc_device.sendTargetValue(target_value)
@@ -193,9 +197,13 @@ class SimpleFOCSerialConnection:
         return self.simple_foc_device.sendSensorZeroElectrical()
     
     @simplefoc_device_command()
-    def sendSensorZeroOffset(self):
-        return self.simple_foc_device.sendSensorZeroOffset()
+    def sendSensorZeroOffset(self,offset_value):
+        return self.simple_foc_device.sendSensorZeroOffset(offset_value)
     
+    @simplefoc_device_command()
+    def sendSensorZeroOffsetFromCurrentAngle(self):
+        return self.simple_foc_device.sendSensorZeroOffsetFromCurrentAngle()
+
     @simplefoc_device_command()
     def sendModulationCentered(self,value):
         return self.simple_foc_device.sendModulationCentered(value)
