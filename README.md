@@ -9,6 +9,11 @@ Adapted from *Simple**FOC**Studio*
 
 Graphical user interface for the [*Simple**FOC**library*](https://github.com/simplefoc). This application allows to tune and configure any BLDC/Stepper *Simple**FOC**library* controlled device, using serial port communications.
 
+<p align="center">
+  <img  src="./DOC/screenshot.png">
+</p>
+
+
 #### The main features are:
 
 Adapted from *Simple**FOC**Studio*
@@ -19,9 +24,6 @@ Adapted from *Simple**FOC**Studio*
 - Code generation for easier integration of the tuned parameters in your code
 - Built with web based frontend
 
-<p align="center">
-  <img  src="./DOC/screenshot.png">
-</p>
 
 ### Installation
 
