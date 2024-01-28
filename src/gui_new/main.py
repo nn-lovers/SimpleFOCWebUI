@@ -297,7 +297,8 @@ class DevicePage:
         self.server.log_debug("general","Control Mode Changed.",control_mode)
 
     @socketio_event_handler(requires_serial_connection=True)
-    def request_send_live_data(self, serial_connection:SimpleFOCSerialConnection,request_status:bool):
+    def request_send_live_data(self, serial_connection:SimpleFOCSerialConnection,request_status:bool,monitoring_variables:[bool]):        
+        serial_connection.sendMonitorVariables(monitoring_variables)
         if self.serial_live_data_sync is None:
             if request_status == True:
                 self.serial_live_data_sync = DevicePageSyncLiveData(
@@ -308,6 +309,9 @@ class DevicePage:
                 self.serial_live_data_sync.stop()
                 self.serial_live_data_sync = None        
         self.server.socketio.emit("server_response_live_data_change",request_status)
+        self.server.socketio.emit(
+            "server_response_monitoring_variables_changed", monitoring_variables
+        )
         self.server.log_debug("general","Live data sending changed::Sending:",request_status)
 
     @socketio_event_handler()
@@ -393,6 +397,7 @@ class DevicePage:
         self.server.socketio.emit("server_response_device_disconnect", port_name)
         self.server.log_info("device_page", f"{port_name} Disconnected.")
         self.server.log_info("device_page","UISYSCMD::CLS")
+        self.server.socketio.emit("server_response_live_data_change",False)
 
     def stop(self):
         if self.serial_live_data_sync is not None:

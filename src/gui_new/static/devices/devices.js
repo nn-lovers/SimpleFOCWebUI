@@ -477,7 +477,8 @@ function request_toggle_live_data(){
     /*Send live data (boolean) to disable or enable sending for the requested COMM port*/
     socket.emit("client_request_send_live_data_data",{
         "port_name":selected_device,
-        "request_status":!sending_live_data
+        "request_status":!sending_live_data,
+        "monitoring_variables":selected_monitoring_variables
     });
 }
 function update_monitoring_variables(index,checked){    
