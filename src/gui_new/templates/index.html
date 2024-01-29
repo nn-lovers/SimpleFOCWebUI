@@ -1,11 +1,22 @@
-<link rel="stylesheet" href="{{ url_for('static',filename='/general.css')}}">
-<link rel="stylesheet" href="{{ url_for('static',filename='/devices/devices.css')}}">
-<link rel="stylesheet" href="{{ url_for('static',filename='/components/slider.css')}}">
-<link rel="stylesheet" href="{{ url_for('static',filename='/components/checkbox.css')}}">
-<link rel="stylesheet" href="{{ url_for('static',filename='/components/loader.css')}}">
-<link rel="stylesheet" href="{{ url_for('static',filename='/dist/uplot.css')}}">
-<link rel="stylesheet" href="{{ url_for('static',filename='/dist/awesome_notifications/style.css')}}">
-<link rel="stylesheet" href="{{ url_for('static',filename='/dist/highlight.css')}}">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>SimpleFOC WebUI</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='/general.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='/devices/devices.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='/components/slider.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='/components/checkbox.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='/components/loader.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='/dist/uplot.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='/dist/awesome_notifications/style.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='/dist/highlight.css')}}">
+      <link rel="icon" href="{{ url_for('static',filename='/media/logo.ico')}}" type="image/x-icon">
+  </head>
+  
+
 
 <body>
 
@@ -643,9 +654,8 @@
 </div>
 </div>
 
-<script src="{{ url_for('static', filename='general.js')}}"></script>
-<script src="{{ url_for('static', filename='dist/index.var.js')}}"></script>
 <script src="{{ url_for('static', filename='dist/socketio.js')}}"></script>
+<script src="{{ url_for('static', filename='general.js')}}"></script>
 <script src="{{ url_for('static', filename='dist/uplot.js')}}"></script>
 <script src="{{ url_for('static', filename='dist/highlight.js')}}"></script>
 <script src="{{ url_for('static', filename='dist/awesome_notifications/index.var.js')}}"></script>
@@ -653,3 +663,5 @@
 <script src="{{ url_for('static', filename='components/slider.js')}}"></script>
 <script src="{{ url_for('static', filename='devices/devices.js')}}"></script>
 
+
+</html>

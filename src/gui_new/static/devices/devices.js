@@ -677,8 +677,8 @@ document.getElementById("configuration_file_select").addEventListener('change', 
 
 let uplot = makeChart({
     title: "",
-    drawStyle: drawStyles.line,
-    lineInterpolation: lineInterpolations.spline,
+    drawStyle: 0,
+    lineInterpolation: 3,
   },);
 
 function toggle_topbar_menu(){

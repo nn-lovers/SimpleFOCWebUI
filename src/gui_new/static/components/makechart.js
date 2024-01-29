@@ -1,4 +1,5 @@
-const { linear, stepped, bars, spline, spline2 } = uPlot.paths;
+function makeChart(cfg) {
+  const { linear, stepped, bars, spline, spline2 } = uPlot.paths;
 
 
 
@@ -75,8 +76,6 @@ function getSize() {
     height: 300,
   }
 }
-
-function makeChart(cfg) {
   let opts = {
     title: cfg.title,
     ...getSize(),
