@@ -146,24 +146,23 @@ class SimpleFOCDevice:
 
         # sensor variables
         self.sensorElectricalZero = 0
-        self.sensorZeroOffset = 0        
-            
-        self.start_update_states_thread(state_update_callback)
+        self.sensorZeroOffset = 0
+
+        self.start_update_states_thread(state_update_callback)        
 
     def pullAllConfiguration(self):
         for ret, command in self.pullConfiguration():
             pass
+        self.configuration_pulled = True
 
     def start_update_states_thread(self,state_update_callback):
-        self._stopped = Event()
+        self._stopped = Event()        
         def _t():
             while not self._stopped.is_set():
-                time.sleep(1)
-                continue
                 #self.updateStates()
-                #if state_update_callback is not None:
-                #    state_update_callback(self)
-                #time.sleep(3)
+                if state_update_callback is not None:
+                    state_update_callback(self)
+                time.sleep(1)
 
         self.update_states_thread = Thread(target=_t)
         self.update_states_thread.start()

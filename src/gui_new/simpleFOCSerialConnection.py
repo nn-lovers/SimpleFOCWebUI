@@ -51,7 +51,7 @@ class SimpleFOCSerialConnection:
             self.serial_connection = SerialConnection(
                 port_name, serial_rate, serial_byte_size, serial_parity, stop_bits, data_read_callback=self.parse_serial_data_read
             )
-            self.simple_foc_device = SimpleFOCDevice(self.serial_connection.serial_comm,command_id,state_update_callback)            
+            self.simple_foc_device = SimpleFOCDevice(self.serial_connection.serial_comm,command_id,state_update_callback)
         except Exception as e:
             self.server.log_error("general", str(e))
             raise

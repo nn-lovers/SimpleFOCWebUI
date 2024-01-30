@@ -326,7 +326,8 @@ class DevicePage:
             device_params = self.connected_com.simple_foc_device.serialize_simple()
             control_loop_mode = self.connected_com.simple_foc_device.controlType
             torque_mode = self.connected_com.simple_foc_device.torqueType
-            current_target = self.connected_com.simple_foc_device.target
+            current_target = self.connected_com.simple_foc_device.target            
+
         else:
             connected_port_name = None
             monitor_variables = [False for _ in range(7)]
@@ -348,7 +349,7 @@ class DevicePage:
             "current_target":current_target,
             "default_save_path":self.default_save_path,
             "hosting_ip_address": f"{'https' if self.use_https else 'http' }://{hosting_ip_address}:{self.hosting_port}"
-        })
+        })        
     
     @socketio_event_handler()
     def refresh_devices(self):
