@@ -366,7 +366,7 @@ class DevicePage:
         if(self.connected_com is not None and port_name != self.connected_com.port_name):
             self.disconnect_com({"port_name":self.connected_com.port_name})
 
-        def device_state_update_callback(simple_foc_device:SimpleFOCDevice):            
+        def device_state_update_callback(simple_foc_device:SimpleFOCDevice):
             self.server.socketio.emit(
                 "server_response_device_params_sync",
                 simple_foc_device.serialize_simple()

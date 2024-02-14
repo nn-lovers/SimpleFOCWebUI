@@ -290,7 +290,7 @@ class SimpleFOCDevice:
         if loop_control_type != "":
             self.controlType = loop_control_type
         return self.setCommand("C", str(loop_control_type))
-
+    
     def sendTorqueType(self, torque_type):
         if torque_type != "":
             self.torqueType = torque_type
