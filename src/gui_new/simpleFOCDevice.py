@@ -4,6 +4,7 @@ from threading import Thread, Event
 import traceback
 import serial
 
+
 class PIDController:
     P = 0
     D = 0
@@ -92,7 +93,7 @@ class SimpleFOCDevice:
         "angle",
     ]
 
-    def __init__(self, serial_comm, command_id="M",state_update_callback=None):
+    def __init__(self, serial_comm, command_id="M", state_update_callback=None):
         self.update_states_thread = None
         self._stopped = Event()
         # serial connection variables
@@ -148,18 +149,19 @@ class SimpleFOCDevice:
         self.sensorElectricalZero = 0
         self.sensorZeroOffset = 0
 
-        self.start_update_states_thread(state_update_callback)        
+        self.start_update_states_thread(state_update_callback)
 
     def pullAllConfiguration(self):
         for ret, command in self.pullConfiguration():
             pass
         self.configuration_pulled = True
 
-    def start_update_states_thread(self,state_update_callback):
-        self._stopped = Event()        
+    def start_update_states_thread(self, state_update_callback):
+        self._stopped = Event()
+
         def _t():
             while not self._stopped.is_set():
-                #self.updateStates()
+                # self.updateStates()
                 if state_update_callback is not None:
                     state_update_callback(self)
                 time.sleep(1)
@@ -175,43 +177,38 @@ class SimpleFOCDevice:
 
     def serialize_simple(self):
         return {
-            "phase_resistance":self.phaseResistance,
-            "current_limit":self.currentLimit,
-            "velocity_limit":self.velocityLimit,
-            "voltage_limit":self.voltageLimit,
-            "motion_downsample":self.motionDownsample,
-            "modulation_type":self.modulationType,
-            "modulation_centered":self.modulationCentered,
-
-            #Position
-            "position_P_gain":self.PIDAngle.P,
-            "position_I_gain":self.PIDAngle.I,
-            "position_D_gain":self.PIDAngle.D,
-            "position_output_ramp":self.PIDAngle.outputRamp,
-            "position_output_limit":self.PIDAngle.outputLimit,
-
-            #Velocity
-            "velocity_P_gain":self.PIDVelocity.P,
-            "velocity_I_gain":self.PIDVelocity.I,
-            "velocity_D_gain":self.PIDVelocity.D,
-            "velocity_output_ramp":self.PIDVelocity.outputRamp,
-            "velocity_output_limit":self.PIDVelocity.outputLimit,
-
-            #Current D
-            "curr_d_P_gain":self.PIDCurrentD.P,
-            "curr_d_I_gain":self.PIDCurrentD.I,
-            "curr_d_D_gain":self.PIDCurrentD.D,
-            "curr_d_output_ramp":self.PIDCurrentD.outputRamp,
-            "curr_d_output_limit":self.PIDCurrentD.outputLimit,
-
-            #Current Q
-            "curr_q_P_gain":self.PIDCurrentQ.P,
-            "curr_q_I_gain":self.PIDCurrentQ.I,
-            "curr_q_D_gain":self.PIDCurrentQ.D,
-            "curr_q_output_ramp":self.PIDCurrentQ.outputRamp,
-            "curr_q_output_limit":self.PIDCurrentQ.outputLimit,
+            "phase_resistance": self.phaseResistance,
+            "current_limit": self.currentLimit,
+            "velocity_limit": self.velocityLimit,
+            "voltage_limit": self.voltageLimit,
+            "motion_downsample": self.motionDownsample,
+            "modulation_type": self.modulationType,
+            "modulation_centered": self.modulationCentered,
+            # Position
+            "position_P_gain": self.PIDAngle.P,
+            "position_I_gain": self.PIDAngle.I,
+            "position_D_gain": self.PIDAngle.D,
+            "position_output_ramp": self.PIDAngle.outputRamp,
+            "position_output_limit": self.PIDAngle.outputLimit,
+            # Velocity
+            "velocity_P_gain": self.PIDVelocity.P,
+            "velocity_I_gain": self.PIDVelocity.I,
+            "velocity_D_gain": self.PIDVelocity.D,
+            "velocity_output_ramp": self.PIDVelocity.outputRamp,
+            "velocity_output_limit": self.PIDVelocity.outputLimit,
+            # Current D
+            "curr_d_P_gain": self.PIDCurrentD.P,
+            "curr_d_I_gain": self.PIDCurrentD.I,
+            "curr_d_D_gain": self.PIDCurrentD.D,
+            "curr_d_output_ramp": self.PIDCurrentD.outputRamp,
+            "curr_d_output_limit": self.PIDCurrentD.outputLimit,
+            # Current Q
+            "curr_q_P_gain": self.PIDCurrentQ.P,
+            "curr_q_I_gain": self.PIDCurrentQ.I,
+            "curr_q_D_gain": self.PIDCurrentQ.D,
+            "curr_q_output_ramp": self.PIDCurrentQ.outputRamp,
+            "curr_q_output_limit": self.PIDCurrentQ.outputLimit,
         }
-    
 
     def toJSON(self):
         valuesToSave = {
@@ -290,7 +287,7 @@ class SimpleFOCDevice:
         if loop_control_type != "":
             self.controlType = loop_control_type
         return self.setCommand("C", str(loop_control_type))
-    
+
     def sendTorqueType(self, torque_type):
         if torque_type != "":
             self.torqueType = torque_type
@@ -305,7 +302,7 @@ class SimpleFOCDevice:
         if value != "":
             pid.P = value
         return self.setCommand(str(pid.cmd) + "P", str(value))
-        
+
     def sendIntegralGain(self, pid, value):
         if value != "":
             pid.I = value
@@ -356,8 +353,8 @@ class SimpleFOCDevice:
             self.target = targetvalue
         return self.setCommand("", self.target)
 
-    def sendSensorZeroOffsetFromCurrentAngle(self):     
-        #TODO: ???
+    def sendSensorZeroOffsetFromCurrentAngle(self):
+        # TODO: ???
         return self.sendSensorZeroOffset(float(self.state_variables["angle"]))
 
     def sendSensorZeroOffset(self, targetvalue):
@@ -406,7 +403,7 @@ class SimpleFOCDevice:
         else:
             self.getCommand("MS")
             return True, ""
-    
+
     def updateStates(self):
         if self.isConnected:
             self.getCommand("MG0")
@@ -554,7 +551,9 @@ class SimpleFOCDevice:
 
     def parseSensorResponse(self, commandResponse):
         if "el. offset" in commandResponse:
-            self.sensorElectricalZero = float(commandResponse.replace("el. offset:", ""))
+            self.sensorElectricalZero = float(
+                commandResponse.replace("el. offset:", "")
+            )
         elif "offset" in commandResponse:
             self.sensorZeroOffset = float(commandResponse.replace("offset:", ""))
 
@@ -574,6 +573,13 @@ class SimpleFOCDevice:
                 self.state_variables[self.MONITORING_VARIABLE_KEYS[item_indx]] = data[
                     parsed_indx
                 ]
+                if (
+                    self.MONITORING_VARIABLE_KEYS[item_indx] == "curr_q"
+                    or self.MONITORING_VARIABLE_KEYS[item_indx] == "curr_d"
+                ):
+                    self.state_variables[self.MONITORING_VARIABLE_KEYS[item_indx]] = (
+                        float(data[parsed_indx]) / 1000.0
+                    )
 
     def serialize_live_data_data(self):
         serialized = {"timestamps": time.time()}
@@ -590,8 +596,8 @@ class SimpleFOCDevice:
             self.state_variables["target"] = states[0]
             self.state_variables["volt_q"] = states[1]
             self.state_variables["volt_d"] = states[2]
-            self.state_variables["curr_q"] = states[3]
-            self.state_variables["curr_d"] = states[4]
+            self.state_variables["curr_q"] = states[3] / 1000
+            self.state_variables["curr_d"] = states[4] / 1000
             self.state_variables["velocity"] = states[5]
             self.state_variables["angle"] = states[6]
 
@@ -607,11 +613,17 @@ class SimpleFOCDevice:
         elif "Vd" in commandResponse:
             self.state_variables["volt_d"] = float(commandResponse.replace("Vd:", ""))
         elif "Cq" in commandResponse:
-            self.state_variables["curr_q"] = float(commandResponse.replace("Cq:", ""))
+            self.state_variables["curr_q"] = (
+                float(commandResponse.replace("Cq:", "")) / 1000
+            )
         elif "Cd" in commandResponse:
-            self.state_variables["curr_d"] = float(commandResponse.replace("Cd:", ""))
+            self.state_variables["curr_d"] = (
+                float(commandResponse.replace("Cd:", "")) / 1000
+            )
         elif "vel" in commandResponse:
-            self.state_variables["velocity"] = float(commandResponse.replace("vel:", ""))
+            self.state_variables["velocity"] = float(
+                commandResponse.replace("vel:", "")
+            )
         elif "angle" in commandResponse:
             self.state_variables["angle"] = float(commandResponse.replace("angle:", ""))
 
